@@ -1,0 +1,4 @@
+# downloaded source data, re-fetched by tools/build_cards.py
+tools/cache/
+__pycache__/
+*.pyc

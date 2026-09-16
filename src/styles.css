@@ -1,0 +1,297 @@
+/* The artifact host supplied these; a standalone page has to declare them itself. */
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+:root{
+  --desk:#D6D1C4; --desk-2:#C6C0B0;
+  --stock:#FCFAF4; --stock-2:#F5F1E6; --edge:#BDB6A4;
+  --ink:#16161A; --ink-2:#55524B; --ink-3:#8B857A;
+  --rule:#8E897D; --rule-soft:#C2BCAE; --ghost:#E3DFD5;
+  --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
+  --ui:#4A453C;
+  /* One face throughout. Klee One is a pen/textbook design, so its letterforms agree with
+     the KanjiVG skeleton the stroke strip draws — a mincho would disagree with it (花's 艹
+     is one connected bar in print, separate strokes by hand). --glyph-edge adds back the
+     weight a mincho had, in cqw so it scales with the card. */
+  --jp:"Klee One","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,sans-serif;
+  --jp-bold:600; --glyph-edge:.235cqw;
+  --latin:ui-sans-serif,-apple-system,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --desk:#1A1714; --desk-2:#0E0C0A;
+    --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+    --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
+    --ui:#BCB4A6;
+  }
+}
+:root[data-theme="dark"]{
+  --desk:#1A1714; --desk-2:#0E0C0A;
+  --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+  --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
+  --ui:#BCB4A6;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{overflow-x:clip}
+body{overflow-x:clip}
+body{
+  margin:0; padding-block:36px 40px; padding-left:16px; padding-right:16px;
+  background:linear-gradient(168deg,var(--desk),var(--desk-2)); background-attachment:fixed;
+  color:var(--ui); font-family:var(--latin);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============ the card ============
+   Geometry taken from the reference photo, perspective-corrected to 1380x1000.
+   Every measurement below is that pixel value / 13.8, i.e. % of the card's width,
+   so the whole card scales as one drawing. */
+.table{
+  --card-w:min(94vw,680px); --pile-w:calc(var(--card-w) * .4);
+  display:flex; flex-direction:column; align-items:center; gap:26px;
+}
+.stage{position:relative; width:var(--card-w)}
+/* perspective on .dealer so the flip still reads as 3D while .dealer carries the flight */
+.dealer{perspective:1700px; position:relative; z-index:1}
+/* an extra lift shadow, invisible at rest — height is what sells weight */
+.drop{
+  position:absolute; inset:4% 3%; border-radius:18px; z-index:0; opacity:0;
+  background:rgba(48,40,26,.42); filter:blur(26px); pointer-events:none;
+}
+@keyframes lift{
+  0%{opacity:0; transform:scale(1.08)}
+  40%{opacity:.46; transform:scale(1.04)}
+  100%{opacity:0; transform:scale(1)}
+}
+
+/* ============ the table: draw pile, card, discard ============ */
+.piles{display:flex; justify-content:space-between; width:var(--card-w); gap:16px}
+.pile{
+  position:relative; width:var(--pile-w); aspect-ratio:1.38;
+  background:none; border:none; padding:0; font:inherit; color:var(--ui);
+  flex:none;
+}
+.pile.draw{cursor:pointer}
+.stack{position:absolute; inset:0}
+/* each layer sits a shade up-left of the one above, so the pile reads as thickness */
+.stack .layer:nth-last-child(1){transform:none}
+.stack .layer:nth-last-child(2){transform:translate(-1.5px,-1.5px)}
+.stack .layer:nth-last-child(3){transform:translate(-3px,-3px)}
+.stack .layer:nth-last-child(4){transform:translate(-4.5px,-4.5px)}
+.stack .layer:nth-last-child(5){transform:translate(-6px,-6px)}
+.pile.draw:hover .stack .layer:last-child{transform:translateY(-4px)}
+.pile.draw:active .stack .layer:last-child{transform:translateY(-1px)}
+.pile:focus-visible{outline:2px solid var(--ink); outline-offset:6px; border-radius:6px}
+.layer{
+  position:absolute; inset:0; border-radius:6px; overflow:hidden;
+  background:linear-gradient(157deg,var(--stock),var(--stock-2));
+  border:1px solid var(--edge);
+  box-shadow:0 1px 2px rgba(50,44,32,.2), 0 6px 12px -6px rgba(50,44,32,.34);
+  transition:transform .16s ease;
+}
+/* the deck's face-down pattern: a plain ruled panel, the way drill-card stock is printed */
+.pile .mark{
+  position:absolute; inset:0; display:grid; place-items:center; z-index:2; opacity:0;
+  font-family:var(--jp); font-size:calc(var(--pile-w) * .17); color:var(--ink-3);
+  letter-spacing:.14em; pointer-events:none;
+}
+.pile.empty .stack{opacity:0}
+.pile.empty .mark{opacity:.3}
+.pile.empty{border:1px dashed var(--rule-soft); border-radius:6px}
+.pile .tag{
+  position:absolute; left:0; right:0; top:calc(100% + 7px); text-align:center;
+  font-family:var(--latin); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ui); opacity:.6; white-space:nowrap;
+}
+.pile .tag b{font-weight:500; opacity:.9; font-variant-numeric:tabular-nums}
+
+/* the outgoing card, cloned and flown to the discard pile */
+/* the flyer is a real card clone, so whatever it shows in flight is the same object
+   the pile and the table show — there is no stand-in graphic anywhere */
+.card.flyer{position:fixed; z-index:40; pointer-events:none; cursor:default; transition:none}
+/* a pile's top card is a full-size face scaled down, so its container queries still
+   resolve against a real card width and the layout matches exactly */
+.mini{
+  position:absolute; top:0; left:0; width:var(--card-w); aspect-ratio:1.38;
+  transform:scale(.4); transform-origin:top left; pointer-events:none;
+}
+.mini .face{box-shadow:none; border:none; border-radius:16px}
+.card.hidden{visibility:hidden}
+
+.card{
+  position:relative; width:100%; aspect-ratio:1.38;
+  background:none; border:none; padding:0; cursor:pointer; display:block;
+  transform-style:preserve-3d; transition:transform .55s cubic-bezier(.3,.85,.35,1);
+}
+.card.flipped{transform:rotateY(180deg)}
+.card:focus-visible{outline:2px solid var(--ink); outline-offset:6px}
+.face{
+  position:absolute; inset:0; container-type:inline-size;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  background:linear-gradient(157deg,var(--stock),var(--stock-2));
+  border:1px solid var(--edge); border-radius:16px;
+  box-shadow:var(--shadow); color:var(--ink);
+  font-family:var(--jp); text-align:left; overflow:hidden;
+}
+.back{transform:rotateY(180deg)}
+.turn{
+  position:absolute; right:3.6cqw; bottom:3cqw;
+  font-family:var(--jp); font-size:2.6cqw; color:var(--ink-3);
+  border:.14cqw solid var(--rule-soft); border-radius:50%;
+  width:5.4cqw; height:5.4cqw; display:grid; place-items:center;
+  opacity:.75; transition:opacity .15s;
+}
+.card:hover .turn{opacity:1}
+
+/* card back — the same six words, but grouped by which reading they use.
+   The kanji's readings appear once, as the group headings, so nothing repeats the front. */
+.back .bk-k{
+  position:absolute; left:6.5cqw; top:3.6cqw; font-family:var(--jp);
+  font-size:9.5cqw; font-weight:var(--jp-bold); line-height:1;
+  -webkit-text-stroke:calc(var(--glyph-edge) * .4) currentColor;
+}
+.back .bk-m{
+  position:absolute; left:19cqw; top:9.4cqw; font-family:var(--latin);
+  font-size:2.7cqw; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2);
+}
+.back hr{
+  position:absolute; left:6.5cqw; right:6.5cqw; top:15cqw;
+  border:none; border-top:.16cqw solid var(--rule-soft); margin:0;
+}
+.back .bk-groups{
+  position:absolute; left:6.5cqw; right:6.5cqw; top:16.4cqw; bottom:1.8cqw;
+  display:flex; flex-direction:column; gap:.9cqw;
+}
+.bk-head{display:flex; align-items:baseline; gap:2.4cqw; margin-bottom:.2cqw}
+.bk-head b{
+  font-weight:400; font-family:var(--jp); font-size:2.5cqw;
+  color:var(--ink-3); letter-spacing:.14em; min-width:9cqw;
+}
+.bk-head span{font-family:var(--jp); font-size:3.9cqw; line-height:1}
+.bk-row{
+  display:grid; grid-template-columns:21cqw 17cqw 1fr; align-items:baseline;
+  gap:1.5cqw; padding:.42cqw 0 .42cqw 2cqw;
+  border-bottom:.14cqw dotted var(--rule-soft);
+}
+.bk-row:last-child{border-bottom:none}
+.bk-row .r{font-family:var(--jp); font-size:3cqw; color:var(--ink)}
+.bk-row .w{font-family:var(--jp); font-size:3cqw; color:var(--ink-2)}
+.bk-row .g{font-family:var(--latin); font-size:2.5cqw; color:var(--ink-2)}
+
+.no{
+  position:absolute; top:5.4cqw; right:3.4cqw;
+  font-family:var(--latin); font-weight:300; font-size:4.1cqw; letter-spacing:.04em;
+  color:var(--ink); font-variant-numeric:tabular-nums; line-height:1;
+}
+
+.glyph{
+  position:absolute; left:9.6cqw; top:9.4cqw; width:31cqw; height:30cqw;
+  display:grid; place-items:center;
+  font-family:var(--jp); font-size:29cqw; font-weight:var(--jp-bold); line-height:1; color:var(--ink);
+  -webkit-text-stroke:var(--glyph-edge) currentColor;
+}
+
+.vocab{
+  position:absolute; left:44.2cqw; top:6.2cqw; width:34cqw;
+  margin:0; padding:0; list-style:none;
+  font-family:var(--jp); font-size:3.95cqw; line-height:6.3cqw; font-weight:400; color:var(--ink);
+}
+.vocab li{display:flex; gap:1.5cqw; white-space:nowrap}
+.vocab .n{
+  font-family:var(--latin); font-weight:300; font-size:3.5cqw;
+  color:var(--ink); min-width:3.4cqw; font-variant-numeric:tabular-nums;
+}
+
+/* cross-reference box: kanji built from the same component, with their own card numbers */
+.related{
+  position:absolute; left:80.2cqw; top:12.6cqw; width:15.4cqw; height:33.4cqw;
+  border:.16cqw solid var(--rule); border-radius:.9cqw;
+  display:flex; flex-direction:column;
+}
+.rel{flex:1; position:relative; display:flex; flex-direction:column;
+     align-items:center; justify-content:center; gap:.45cqw;
+     /* clear the number above and the gloss below, both absolutely placed */
+     padding:1.6cqw 0 3.2cqw}
+.rel + .rel{border-top:.16cqw solid var(--rule-soft)}
+.rel .rn{
+  position:absolute; top:.7cqw; right:1cqw; font-family:var(--latin); font-weight:300;
+  font-size:2.05cqw; color:var(--ink-2); font-variant-numeric:tabular-nums; line-height:1;
+}
+.rel .rk{font-family:var(--jp); font-size:7.4cqw; font-weight:var(--jp-bold); line-height:1}
+/* printed only when this relative shares the main kanji's on-reading — i.e. the shared
+   component is phonetic, not just a lookalike. Its absence is as informative as its presence. */
+.rel .rs{
+  font-family:var(--jp); font-size:2.1cqw; line-height:1; color:var(--ink-2);
+  border-top:.14cqw solid var(--rule-soft); padding-top:.7cqw; margin-top:.2cqw;
+  letter-spacing:.04em; white-space:nowrap;
+}
+.rel .rg{
+  position:absolute; bottom:.8cqw; left:.6cqw; right:.6cqw; text-align:center;
+  font-family:var(--latin); font-size:1.85cqw; color:var(--ink-2); letter-spacing:.01em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.code{
+  position:absolute; left:6.4cqw; top:45.4cqw;
+  font-family:var(--latin); font-weight:300; font-size:2.95cqw; letter-spacing:.09em;
+  color:var(--ink); display:flex; align-items:baseline; gap:1.3cqw;
+}
+.code .rad{font-family:var(--jp); font-weight:var(--jp-bold); font-size:3.3cqw; letter-spacing:0}
+
+/* practice strip: one cell per stroke. Each cell holds a grey ghost of the finished
+   kanji with the cumulative build painted over it — a tracing guide, not a diagram. */
+.strip{
+  position:absolute; left:6.2cqw; top:50.6cqw; width:88.8cqw; height:13.9cqw;
+  border:.16cqw solid var(--rule); border-radius:.7cqw;
+  display:flex; overflow:hidden;
+}
+.cell{flex:1 1 0; min-width:0; position:relative; padding:.3cqw}
+.cell + .cell{border-left:.16cqw dotted var(--rule-soft)}
+/* letterbox inside the cell — an intrinsic width here overflows into the next cell */
+.cell svg{display:block; width:100%; height:100%}
+/* Strokes are KanjiVG paths, not type: a font can't be taken apart into strokes, and
+   masking a glyph by them only stays accurate while it's too thin to read. Round caps
+   and an even weight match Klee One's low-contrast pen character. */
+.cell svg{stroke-linecap:round; stroke-linejoin:round; fill:none}
+/* the guide must stay lighter than the answer: at equal weight it competes with the
+   stroke being taught and fringes out around it */
+.cell .gh path{stroke:var(--ghost); stroke-width:3}
+.cell .dr path{stroke:var(--ink); stroke-width:5}
+
+.swap{animation:swap .34s ease}
+@keyframes swap{from{opacity:0} to{opacity:1}}
+
+/* ============ controls ============ */
+.controls{display:flex; flex-direction:column; align-items:center; gap:13px}
+.draw{
+  font-family:var(--latin); font-size:13px; letter-spacing:.17em; text-transform:uppercase;
+  background:var(--ink); color:var(--stock); border:none; border-radius:2px;
+  padding:13px 30px; cursor:pointer; display:inline-flex; align-items:center; gap:11px;
+  transition:transform .12s ease, opacity .12s ease;
+}
+.draw .kana{font-family:var(--jp); font-size:15px; letter-spacing:.1em; text-transform:none}
+.draw:hover{transform:translateY(-1px)}
+.draw:active{transform:translateY(1px)}
+.draw:focus-visible{outline:2px solid var(--ink); outline-offset:4px}
+.hint{font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--ui); opacity:.6}
+.hint kbd{font:inherit; border:1px solid currentColor; border-radius:2px; padding:1px 5px}
+.picker{display:grid; grid-template-columns:auto 1fr; align-items:center; gap:9px 12px; max-width:700px}
+.picker > .caption{text-align:right; white-space:nowrap}
+.fonts{display:flex; flex-wrap:wrap; gap:6px}
+.fbtn{
+  font-family:var(--latin); font-size:10.5px; letter-spacing:.06em;
+  background:transparent; color:var(--ui); border:1px solid currentColor; border-radius:2px;
+  padding:6px 10px; cursor:pointer; opacity:.55; display:flex; align-items:center; gap:6px;
+  transition:opacity .12s, background .12s, color .12s;
+}
+.fbtn .cat{font-size:9px; opacity:.7}
+.fbtn:hover{opacity:.85}
+.fbtn[aria-pressed="true"]{opacity:1; background:var(--ink); color:var(--stock); border-color:var(--ink)}
+.fbtn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+.caption{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ui); opacity:.5}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important; transition-duration:.01ms!important}
+}
