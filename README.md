@@ -8,21 +8,31 @@ The card itself is modelled on a physical Japanese 漢字ドリル card — land
 numbered list of compound words, a cross-reference box, a `strokes-radical-remainder`
 code, and a practice strip.
 
+SvelteKit + Vite.
+
 ```
-open frontend/index.html          # no build step, no server needed
+cd frontend
+npm install
+npm run dev       # http://localhost:5173
+npm run build     # static output in frontend/build
 ```
 
 ## Layout
 
 ```
 frontend/
-  index.html          markup and script tags
-  src/styles.css      everything visual
-  src/app.js          deck state, painting, and the flight animations
-  data/cards.js       generated card data (see below)
+  src/app.css                     the card design system (global, see below)
+  src/routes/+page.js             load() — the seam a backend replaces
+  src/routes/+page.svelte         the table: deck state and draw/discard sequencing
+  src/lib/components/Card.svelte  one card, used three ways
+  src/lib/components/Pile.svelte  a stack whose top is a real card face
+  src/lib/flight.js               the card flights (imperative, on purpose)
+  src/lib/readings.js             kana helpers and the reading groups
+  src/lib/deck.js                 shuffle and opening deal
+  src/lib/data/cards.json         generated card data (see below)
 tools/
-  deck.json           the curated half: words, readings, glosses, component pairs
-  build_cards.py      regenerates frontend/data/cards.js
+  deck.json                       the curated half: words, readings, glosses, pairs
+  build_cards.py                  regenerates src/lib/data/cards.json
 ```
 
 `tools/` sits outside `frontend/` on purpose: it is a data pipeline, not app code, and
@@ -34,7 +44,7 @@ it is the part a backend will eventually absorb when card data moves into a data
 python3 tools/build_cards.py
 ```
 
-Writes `frontend/data/cards.js`. Downloads are cached in `tools/cache/`
+Writes `frontend/src/lib/data/cards.json`. Downloads are cached in `tools/cache/`
 (gitignored), so reruns are offline.
 
 `tools/deck.json` is the hand-written content — the six example words per kanji with
@@ -80,14 +90,16 @@ Card data is derived from open datasets and inherits their licences:
 Both data licences are share-alike, so `data/cards.js` and anything derived from it must
 carry the same terms.
 
-## Planned
+**The flights stay imperative.** `flight.js` measures live DOM boxes and drives a
+detached element that deliberately sits outside the component tree. Svelte's `mount()`
+renders a real `Card` into that node, so the flying card is the same component as the
+one on the table and the one on the pile — but the motion itself is plain Web Animations
+API, because declaring it would gain nothing.
 
-When a second screen appears (deck selection, progress, settings), this moves to
-**SvelteKit** — which runs on Vite, so `data/cards.js` becomes a real `fetch` and the
-card table stays an imperative module that Svelte mounts. Until then the buildless
-version is deliberate: the flight animations measure live DOM and append cloned nodes
-outside any component tree, which is awkward to express declaratively and costs nothing
-to keep as plain DOM code.
+**The CSS is global, not scoped.** `app.css` is a designed system: container queries on
+the card face, selectors that cross from a pile into the card it holds. Scoping it per
+component would mean `:global()` escapes at every boundary, which reads worse than one
+stylesheet.
 
 ## Not done yet
 
@@ -96,6 +108,6 @@ to keep as plain DOM code.
   real remaining work, and the reason `tools/deck.json` exists as a separate file.
 - **Deck numbers are frequency ranks** standing in for a real ordering. The reference
   card numbers 者 as 240 and 考 as 239 because that deck groups by shared component.
-- **No backend.** `frontend/data/cards.js` is the seam: replace it with a fetch that
-  assigns the same shape to `CARDS`.
+- **No backend.** `src/routes/+page.js` is the seam: swap its import for a `fetch` and
+  nothing else in the app changes.
 - **Drag to draw.** The pile responds to click only.

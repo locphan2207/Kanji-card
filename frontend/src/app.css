@@ -55,7 +55,7 @@ body{
 }
 .stage{position:relative; width:var(--card-w)}
 /* perspective on .dealer so the flip still reads as 3D while .dealer carries the flight */
-.dealer{perspective:1700px; position:relative; z-index:1}
+.dealer{perspective:1700px; position:relative; z-index:1; aspect-ratio:1.38}
 /* an extra lift shadow, invisible at rest — height is what sells weight */
 .drop{
   position:absolute; inset:4% 3%; border-radius:18px; z-index:0; opacity:0;
@@ -111,7 +111,11 @@ body{
 /* the outgoing card, cloned and flown to the discard pile */
 /* the flyer is a real card clone, so whatever it shows in flight is the same object
    the pile and the table show — there is no stand-in graphic anywhere */
-.card.flyer{position:fixed; z-index:40; pointer-events:none; cursor:default; transition:none}
+.flyer{
+  position:fixed; z-index:40; pointer-events:none;
+  transform-style:preserve-3d;    /* the flip must survive this extra level */
+}
+.flyer .card{cursor:default; transition:none}
 /* a pile's top card is a full-size face scaled down, so its container queries still
    resolve against a real card width and the layout matches exactly */
 .mini{
@@ -122,7 +126,7 @@ body{
 .card.hidden{visibility:hidden}
 
 .card{
-  position:relative; width:100%; aspect-ratio:1.38;
+  position:relative; width:100%; height:100%;
   background:none; border:none; padding:0; cursor:pointer; display:block;
   transform-style:preserve-3d; transition:transform .55s cubic-bezier(.3,.85,.35,1);
 }
@@ -137,6 +141,8 @@ body{
   font-family:var(--jp); text-align:left; overflow:hidden;
 }
 .back{transform:rotateY(180deg)}
+/* a face rendered on its own (a pile's top card) faces the viewer directly */
+.face.flat{transform:none; backface-visibility:visible; -webkit-backface-visibility:visible}
 .turn{
   position:absolute; right:3.6cqw; bottom:3cqw;
   font-family:var(--jp); font-size:2.6cqw; color:var(--ink-3);
