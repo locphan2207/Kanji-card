@@ -9,19 +9,24 @@ numbered list of compound words, a cross-reference box, a `strokes-radical-remai
 code, and a practice strip.
 
 ```
-open index.html          # no build step, no server needed
+open frontend/index.html          # no build step, no server needed
 ```
 
 ## Layout
 
 ```
-index.html          markup and script tags
-src/styles.css      everything visual
-src/app.js          deck state, painting, and the flight animations
-data/cards.js       generated card data (see below)
-tools/deck.json     the curated half: words, readings, glosses, component pairs
-tools/build_cards.py  regenerates data/cards.js
+frontend/
+  index.html          markup and script tags
+  src/styles.css      everything visual
+  src/app.js          deck state, painting, and the flight animations
+  data/cards.js       generated card data (see below)
+tools/
+  deck.json           the curated half: words, readings, glosses, component pairs
+  build_cards.py      regenerates frontend/data/cards.js
 ```
+
+`tools/` sits outside `frontend/` on purpose: it is a data pipeline, not app code, and
+it is the part a backend will eventually absorb when card data moves into a database.
 
 ## Regenerating the data
 
@@ -29,7 +34,8 @@ tools/build_cards.py  regenerates data/cards.js
 python3 tools/build_cards.py
 ```
 
-Downloads are cached in `tools/cache/` (gitignored), so reruns are offline.
+Writes `frontend/data/cards.js`. Downloads are cached in `tools/cache/`
+(gitignored), so reruns are offline.
 
 `tools/deck.json` is the hand-written content — the six example words per kanji with
 their readings and glosses, and which kanji to cross-reference. Everything else is
@@ -74,6 +80,15 @@ Card data is derived from open datasets and inherits their licences:
 Both data licences are share-alike, so `data/cards.js` and anything derived from it must
 carry the same terms.
 
+## Planned
+
+When a second screen appears (deck selection, progress, settings), this moves to
+**SvelteKit** — which runs on Vite, so `data/cards.js` becomes a real `fetch` and the
+card table stays an imperative module that Svelte mounts. Until then the buildless
+version is deliberate: the flight animations measure live DOM and append cloned nodes
+outside any component tree, which is awkward to express declaratively and costs nothing
+to keep as plain DOM code.
+
 ## Not done yet
 
 - **20 kanji, not 2,136.** Readings, stroke data and radicals scale from open data for
@@ -81,6 +96,6 @@ carry the same terms.
   real remaining work, and the reason `tools/deck.json` exists as a separate file.
 - **Deck numbers are frequency ranks** standing in for a real ordering. The reference
   card numbers 者 as 240 and 考 as 239 because that deck groups by shared component.
-- **No backend.** `data/cards.js` is the seam: replace it with a fetch that assigns the
-  same shape to `CARDS`.
+- **No backend.** `frontend/data/cards.js` is the seam: replace it with a fetch that
+  assigns the same shape to `CARDS`.
 - **Drag to draw.** The pile responds to click only.
