@@ -12,10 +12,11 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) {
 const TEMPLATE = card.cloneNode(true);
 TEMPLATE.removeAttribute("id");
 
+let CARDS = [];
 let deck = [], used = [], current = -1, busy = false, flipped = false;
 
 function cell(paths, n) {
-  const d = ss => ss.map(s => `<path d="${s.d}"/>`).join("");
+  const d = ss => ss.map(s => `<path d="${s}"/>`).join("");
   return `<div class="cell"><svg viewBox="0 0 109 109" aria-hidden="true">` +
     `<g class="gh">${d(paths)}</g><g class="dr">${d(paths.slice(0, n))}</g></svg></div>`;
 }
@@ -190,12 +191,77 @@ function reshuffle() {
 drawPile.addEventListener("click", drawCard);
 card.addEventListener("click", () => setFlipped(!flipped));
 addEventListener("keydown", e => {
+  if (chooser.hidden === false) return;
   if (e.key === "f" || e.key === "F") { e.preventDefault(); return setFlipped(!flipped); }
   if (e.target === card || e.target === drawPile) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); drawCard(); }
 });
 
-current = CARDS.findIndex(c => c.k === "者");
-deck = shuffle(CARDS.map((_, i) => i).filter(i => i !== current));
-paint(card, CARDS[current]);
-renderPiles();
+/* ============ decks ============
+   One file per level, fetched only when that level is picked: the full set is about
+   3MB of stroke paths and nobody studies five levels at once. They load through a
+   <script> tag rather than fetch() so the page still runs from file:// with no server,
+   which is the whole point of the data being static. Each file calls KANJI_DECK. */
+const chooser = $("chooser"), levelList = $("levelList"), note = $("chooserNote");
+const table = $("table"), controls = $("controls");
+const decks = {}, waiting = {};
+
+window.KANJI_DECK = (id, cards) => {
+  decks[id] = cards;
+  (waiting[id] || []).forEach(resolve => resolve(cards));
+  delete waiting[id];
+};
+
+function loadDeck(id) {
+  if (decks[id]) return Promise.resolve(decks[id]);
+  if (waiting[id]) return new Promise(resolve => waiting[id].push(resolve));
+  return new Promise((resolve, reject) => {
+    waiting[id] = [resolve];
+    const tag = document.createElement("script");
+    tag.src = `data/levels/${id}.js`;
+    tag.onerror = () => { delete waiting[id]; reject(new Error(`could not load ${id}`)); };
+    document.head.appendChild(tag);
+  });
+}
+
+function deal(cards, label) {
+  CARDS = cards;
+  used = []; busy = false;
+  current = Math.floor(Math.random() * CARDS.length);
+  deck = shuffle(CARDS.map((_, i) => i).filter(i => i !== current));
+  setFlipped(false);
+  paint(card, CARDS[current]);
+  renderPiles();
+  $("relevel").textContent = `${label} · change deck`;
+  chooser.hidden = true; table.hidden = false; controls.hidden = false;
+  card.focus();
+}
+
+function renderChooser() {
+  chooser.hidden = false; table.hidden = true; controls.hidden = true;
+  note.textContent = "";
+  levelList.innerHTML = "";
+  LEVELS.forEach(lv => {
+    const b = document.createElement("button");
+    b.className = "level";
+    b.innerHTML = `<span class="lv">${lv.label}</span><span class="lv-n">${lv.n} cards</span>`;
+    b.addEventListener("click", () => {
+      if (levelList.classList.contains("busy")) return;
+      levelList.classList.add("busy");
+      b.classList.add("loading");
+      note.textContent = decks[lv.id] ? "" : "shuffling the deck…";
+      loadDeck(lv.id)
+        .then(cards => { levelList.classList.remove("busy"); deal(cards, lv.label); })
+        .catch(err => {
+          levelList.classList.remove("busy");
+          b.classList.remove("loading");
+          note.textContent = `${err.message}. Check that frontend/data/levels/ was built.`;
+        });
+    });
+    levelList.appendChild(b);
+  });
+  (levelList.firstElementChild || {}).tabIndex = 0;
+}
+
+$("relevel").addEventListener("click", renderChooser);
+renderChooser();

@@ -8,6 +8,9 @@ The card itself is modelled on a physical Japanese 漢字ドリル card — land
 numbered list of compound words, a cross-reference box, a `strokes-radical-remainder`
 code, and a practice strip.
 
+All 2,136 jōyō kanji are included, dealt as five decks by JLPT level. Pick a level on
+load and that deck — and only that deck — is downloaded, then shuffled.
+
 ```
 open frontend/index.html          # no build step, no server needed
 ```
@@ -18,28 +21,36 @@ open frontend/index.html          # no build step, no server needed
 frontend/
   index.html          markup and script tags
   src/styles.css      everything visual
-  src/app.js          deck state, painting, and the flight animations
-  data/cards.js       generated card data (see below)
+  src/app.js          deck loading, deck state, painting, and the flight animations
+  data/levels.js      the five levels and their card counts (loaded on every visit)
+  data/levels/n5.js   one deck per level, loaded only when picked
+  data/levels/n1.js   …
 tools/
-  deck.json           the curated half: words, readings, glosses, component pairs
-  build_cards.py      regenerates frontend/data/cards.js
+  build_cards.py      regenerates everything under frontend/data/
 ```
 
-`tools/` sits outside `frontend/` on purpose: it is a data pipeline, not app code, and
-it is the part a backend will eventually absorb when card data moves into a database.
+`tools/` sits outside `frontend/` on purpose: it is a data pipeline, not app code. It
+runs when the card content changes, not when the page loads.
 
 ## Regenerating the data
 
 ```
-python3 tools/build_cards.py
+python3 tools/build_cards.py          # ~10s once the sources are cached
 ```
 
-Writes `frontend/data/cards.js`. Downloads are cached in `tools/cache/`
-(gitignored), so reruns are offline.
+Writes `frontend/data/levels.js` and `frontend/data/levels/n*.js`. Downloads are cached
+in `tools/cache/` (gitignored, ~30MB), so reruns are offline.
 
-`tools/deck.json` is the hand-written content — the six example words per kanji with
-their readings and glosses, and which kanji to cross-reference. Everything else is
-derived: stroke paths, stroke types, radicals, readings, meanings, grades, frequencies.
+Nothing on a card is hand-written any more. Every field is derived: the example words
+and their glosses from JMdict, readings and meanings and radicals from KANJIDIC2, stroke
+paths from KanjiVG, and the cross-references from KanjiVG's component decomposition.
+
+**Choosing the six example words** is the part with judgement in it. JMdict marks a word
+common or not and stops there, so the ranking leans on the JLPT vocabulary lists first,
+then prefers words whose kanji the learner has already met, and applies quotas so one
+shape of word cannot take the whole card — without them 日 fills with 一日 二日 三日 and
+never gets round to 日本. 22 rare kanji (朕, 劾, 摯 …) genuinely have fewer than six
+compounds and get what exists.
 
 ## Design notes worth keeping
 
@@ -66,36 +77,71 @@ whether its reading contains one of the kanji's readings, allowing for rendaku
 labels that group 特別な読み rather than 熟字訓, because it also catches readings
 KANJIDIC simply does not list (日本's 日 = に).
 
+**Cross-references** come from KanjiVG's component decomposition, in both directions: a
+kanji is linked to others built from the same component, or — when it is itself a
+building block and so has no siblings — to the kanji built out of it. 日 has no parts of
+its own, but 明 and 早 are made from it. A shared component that also carries a shared
+on-reading is a phonetic series, which is the pairing worth showing, so it scores highest.
+
+## Why the data is static files, not a database
+
+Card content is read-only at runtime and changes only when the pipeline is rerun, which
+makes it a build artifact, not records. Keeping it in files means content edits arrive as
+reviewable diffs, the page still opens from `file://`, hosting is a static bucket, and
+there is nothing to back up that `build_cards.py` could not regenerate.
+
+Splitting by level is what keeps that honest at 2,136 cards. The whole set is about 3MB
+of mostly stroke geometry; one deck is not:
+
+| deck | cards | gzipped |
+|------|------:|--------:|
+| N5   |    79 |   26 KB |
+| N4   |   168 |   68 KB |
+| N3   |   377 |  165 KB |
+| N2   |   368 |  163 KB |
+| N1   | 1,144 |  555 KB |
+
+Decks load through a `<script>` tag rather than `fetch`, so the app still runs from
+`file://` with no server. Each file calls `KANJI_DECK(id, cards)`.
+
+If study progress is ever added, that is the thing with a genuine storage question —
+`localStorage` for one device, a database only once progress has to follow a user across
+devices. Card content would stay in these files either way.
+
 ## Data sources
 
 Card data is derived from open datasets and inherits their licences:
 
-- **KANJIDIC2** — readings, meanings, stroke counts, grades, frequencies.
-  © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0. Obtained via
-  [davidluzgouveia/kanji-data](https://github.com/davidluzgouveia/kanji-data).
-- **KanjiVG** — per-stroke paths, stroke types, radicals.
-  © Ulrich Apel, CC BY-SA 3.0. <https://kanjivg.tagaini.net>
+- **KANJIDIC2** — readings, meanings, stroke counts, grades, frequencies, radicals.
+  © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0.
+- **JMdict** — the example words, their readings and glosses.
+  © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0.
+  Both obtained via [jmdict-simplified](https://github.com/scriptin/jmdict-simplified).
+- **KanjiVG** — per-stroke paths and radicals. © Ulrich Apel, CC BY-SA 3.0.
+  <https://kanjivg.tagaini.net>
+- **JLPT kanji levels** — via
+  [davidluzgouveia/kanji-data](https://github.com/davidluzgouveia/kanji-data), CC BY 4.0.
+- **JLPT vocabulary lists** — used only to rank example words, from
+  [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks), MIT.
 - **Klee One** — typeface, SIL Open Font License 1.1.
 
-Both data licences are share-alike, so `data/cards.js` and anything derived from it must
-carry the same terms.
+The EDRDG and KanjiVG licences are share-alike, so `frontend/data/` and anything derived
+from it must carry the same terms.
 
-## Planned
-
-When a second screen appears (deck selection, progress, settings), this moves to
-**SvelteKit** — which runs on Vite, so `data/cards.js` becomes a real `fetch` and the
-card table stays an imperative module that Svelte mounts. Until then the buildless
-version is deliberate: the flight animations measure live DOM and append cloned nodes
-outside any component tree, which is awkward to express declaratively and costs nothing
-to keep as plain DOM code.
+The JLPT has published no official kanji or vocabulary lists since 2010. The N5–N1
+grouping here is the usual community reconstruction, not an official list, and the 172
+jōyō kanji it does not cover are placed by school grade.
 
 ## Not done yet
 
-- **20 kanji, not 2,136.** Readings, stroke data and radicals scale from open data for
-  the full jōyō set. The example words do not — six good compounds per kanji is the
-  real remaining work, and the reason `tools/deck.json` exists as a separate file.
-- **Deck numbers are frequency ranks** standing in for a real ordering. The reference
-  card numbers 者 as 240 and 考 as 239 because that deck groups by shared component.
-- **No backend.** `frontend/data/cards.js` is the seam: replace it with a fetch that
-  assigns the same shape to `CARDS`.
+- **No progress.** Which cards you have seen is not remembered; a reload deals a fresh
+  shuffle. This is the one part that needs somewhere to write, and `localStorage` covers
+  it long before a database does.
+- **N1 is one 555KB download.** Fine on a laptop, heavy on a phone. Stroke paths are
+  about two thirds of it and are only needed for the practice strip, so splitting them
+  into a second file the deck pulls after the text would cut first paint a lot.
+- **Stroke types are dropped.** KanjiVG tags each stroke ㇐/㇑/㇒; nothing reads it, so
+  it is no longer emitted. Restoring it is one line in `KanjiVG.get`.
+- **Example words are ranked, not chosen.** The quotas stop the obvious failures, but a
+  real frequency corpus would beat a JLPT list plus heuristics.
 - **Drag to draw.** The pile responds to click only.
