@@ -258,8 +258,10 @@ body{
 .cell svg{stroke-linecap:round; stroke-linejoin:round; fill:none}
 /* the guide must stay lighter than the answer: at equal weight it competes with the
    stroke being taught and fringes out around it */
-.cell .gh path{stroke:var(--ghost); stroke-width:3}
-.cell .dr path{stroke:var(--ink); stroke-width:5}
+/* --s is the scale a kana card's stroke was placed at; dividing it out keeps one pen
+   width across a composed glyph, where the small kana is drawn at .42 of the big one. */
+.cell .gh path{stroke:var(--ghost); stroke-width:calc(3 / var(--s,1))}
+.cell .dr path{stroke:var(--ink); stroke-width:calc(5 / var(--s,1))}
 
 .swap{animation:swap .34s ease}
 @keyframes swap{from{opacity:0} to{opacity:1}}
@@ -296,7 +298,7 @@ body{
    Shown before any deck is loaded. The level buttons are small cards in the same stock
    and shadow as the real one, so the choice reads as picking a deck off the table. */
 .chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
-.chooser-box{max-width:560px; text-align:center}
+.chooser-box{max-width:620px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;
@@ -309,7 +311,13 @@ body{
   font-family:var(--latin); font-size:12.5px; line-height:1.65; color:var(--ui);
   opacity:.65; margin:0 auto 26px; max-width:40ch;
 }
-.levels{display:flex; flex-wrap:wrap; gap:12px; justify-content:center}
+.groups{display:flex; flex-direction:column; gap:15px}
+.group{display:grid; grid-template-columns:74px 1fr; align-items:center; gap:14px}
+.group-name{
+  font-family:var(--jp); font-size:12px; letter-spacing:.18em; text-align:right;
+  color:var(--ui); opacity:.6;
+}
+.levels{display:flex; flex-wrap:wrap; gap:10px}
 .level{
   width:88px; aspect-ratio:1.38; flex:0 0 auto; cursor:pointer;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
@@ -321,6 +329,10 @@ body{
   font-family:var(--latin); font-size:19px; font-weight:500; letter-spacing:.08em;
   color:var(--ink);
 }
+.level .lv-rom{
+  font-family:var(--latin); font-size:8.5px; letter-spacing:.09em; color:var(--ink-3);
+  margin-top:-2px;
+}
 .level .lv-n{
   font-family:var(--latin); font-size:9px; letter-spacing:.13em; text-transform:uppercase;
   color:var(--ink-3);
@@ -328,10 +340,14 @@ body{
 .level:hover{transform:translateY(-3px)}
 .level:active{transform:translateY(-1px)}
 .level:focus-visible{outline:2px solid var(--ink); outline-offset:4px}
-.levels.busy .level{cursor:progress}
-.levels.busy .level:not(.loading){opacity:.45}
+.groups.busy .level{cursor:progress}
+.groups.busy .level:not(.loading){opacity:.45}
 .level.loading{animation:deal .9s ease-in-out infinite}
 @keyframes deal{50%{transform:translateY(-5px)}}
+@media (max-width:560px){
+  .group{grid-template-columns:1fr; gap:5px; justify-items:start}
+  .group-name{text-align:left}
+}
 .chooser-note{
   font-family:var(--latin); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--ui); opacity:.6; margin:22px 0 0; min-height:1em;
@@ -343,6 +359,133 @@ body{
 }
 .relevel:hover{opacity:.9}
 .relevel:focus-visible{outline:2px solid var(--ink); outline-offset:3px; opacity:.9}
+
+
+/* ============ the kana card ============
+   Same stock, same strip, same cross-reference box as a kanji card — it is the same
+   physical card — but the content answers a different question, so the geometry departs
+   where the kanji card's would be lying. There is no radical code to print and no
+   reading to withhold; what a kana card withholds is the sound, which lives on the back
+   alongside the one diagram a kanji card has no use for: the gojuon table. */
+/* under the strip, where a kanji card has nothing: the cross-reference box owns the
+   top-right corner and the discard pile shows this label as the card lands */
+.kn-deck{
+  position:absolute; left:6.4cqw; bottom:2.8cqw;
+  font-family:var(--jp); font-size:2.2cqw; letter-spacing:.12em; color:var(--ink-3);
+}
+.kn-glyph{
+  position:absolute; left:4.4cqw; top:8cqw; width:39.4cqw; height:31cqw;
+  display:flex; align-items:center; justify-content:center; white-space:nowrap;
+  font-family:var(--jp); font-weight:var(--jp-bold); line-height:1; color:var(--ink);
+  -webkit-text-stroke:var(--glyph-edge) currentColor;
+}
+.kn-glyph{font-size:30cqw}
+/* きゃ is two characters written as one beat, so it is set as one run and only has to
+   be brought down to a width the card can hold. */
+/* a small kana still takes a full em of advance, so the pair is two ems wide whatever
+   it looks like — the size has to come down to fit, not just the glyph */
+.kn-glyph.two{font-size:18.6cqw; letter-spacing:-.03em}
+
+.kn-vocab{font-size:3.8cqw}
+.kn-vocab li{align-items:baseline}
+.kn-vocab .w{white-space:nowrap}
+/* 圏点 — the dot a Japanese text puts over an emphasised character. Here it marks where
+   the card's kana falls in each word, which a flat list of words hides.
+   Drawn rather than set with text-emphasis, which reserves a line box for the mark and
+   would push six words of leading down into the practice strip. */
+.kn-vocab em{position:relative; font-style:normal}
+.kn-vocab em::after{
+  content:""; position:absolute; left:50%; top:-.22em; transform:translateX(-50%);
+  width:.13em; height:.13em; border-radius:50%; background:var(--ink-3);
+}
+/* the cross-reference box holds bare characters here, so the glyph takes the whole cell */
+.kn-rel:empty{display:none}       /* ー is built from nothing and looks like nothing */
+.kn-rel .rel{padding:1.8cqw 0 .8cqw}
+.kn-rel .rk{font-size:9cqw}
+.kn-rel .rn{font-family:var(--jp); font-size:2.1cqw; color:var(--ink-3); top:.75cqw}
+
+.kn-code{
+  position:absolute; left:6.4cqw; top:43.4cqw;
+  font-family:var(--latin); font-weight:300; font-size:2.95cqw; letter-spacing:.09em;
+  color:var(--ink);
+}
+/* The gojuon table in miniature, one cell inked. Printed the way the table is printed:
+   a 行 is a column, and the columns run right to left, with ん off on its own. */
+.kn-map{
+  position:absolute; left:17.5cqw; top:42.6cqw;
+  display:flex; align-items:center; gap:1.4cqw;
+}
+.kn-map .mlab{
+  font-family:var(--jp); font-size:1.85cqw; letter-spacing:.1em; color:var(--ink-3);
+  line-height:1.4;
+}
+.kn-map .grid{
+  display:grid; grid-template-columns:repeat(11,1.05cqw); grid-auto-rows:1.05cqw; gap:.32cqw;
+}
+.kn-map i{border-radius:.15cqw}
+.kn-map i.on{background:var(--ghost)}
+.kn-map i.here{background:var(--ink)}
+.kn-map .mmark{font-family:var(--jp); font-size:2.7cqw; color:var(--ink); line-height:1.1}
+
+/* ---- kana back ----
+   The header block is the character itself: the glyph, the sound it makes, and — for the
+   dozen kana whose behaviour neither of those explains — a note, in the space a kanji
+   card's back leaves empty. Then the facts, then the same six words with their romaji. */
+.kn-c{
+  position:absolute; left:6.5cqw; top:2.6cqw;
+  font-family:var(--jp); font-size:11cqw; font-weight:var(--jp-bold); line-height:1;
+  -webkit-text-stroke:calc(var(--glyph-edge) * .4) currentColor;
+}
+.kn-c.two{font-size:8cqw; top:4.4cqw}
+.kn-rom{
+  position:absolute; left:22.5cqw; top:3.9cqw;
+  font-family:var(--latin); font-weight:300; font-size:6.8cqw; line-height:1;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--ink);
+}
+.kn-rom.long{font-size:4.3cqw; top:6.2cqw}
+.kn-alt{
+  position:absolute; left:23cqw; top:11.6cqw;
+  font-family:var(--latin); font-size:2.3cqw; letter-spacing:.12em; color:var(--ink-3);
+}
+.kn-note{
+  position:absolute; left:47cqw; right:12cqw; top:4cqw;
+  font-family:var(--latin); font-size:2.15cqw; line-height:1.5; color:var(--ink-2);
+}
+.back.kn hr{top:16.2cqw}
+/* facts then words, in flow rather than pinned: ー has no row in the gojuon table, no
+   源 kanji and no counterpart, so its card should close the gap rather than leave a hole */
+.kn-body{
+  position:absolute; left:6.5cqw; right:6.5cqw; top:17.6cqw; bottom:2cqw;
+  display:flex; flex-direction:column; gap:2.6cqw;
+}
+.kn-facts{display:flex; flex-direction:column; gap:.35cqw}
+.kn-facts:empty{display:none}
+.kn-fact{
+  display:grid; grid-template-columns:11cqw auto 1fr; align-items:baseline; gap:1.6cqw;
+  padding-bottom:.4cqw; border-bottom:.14cqw dotted var(--rule-soft);
+}
+.kn-fact:last-child{border-bottom:none}
+.kn-fact > b{
+  font-weight:400; font-family:var(--jp); font-size:2.3cqw;
+  letter-spacing:.12em; color:var(--ink-3); white-space:nowrap;
+}
+.kn-fact .v{font-family:var(--jp); font-size:3.1cqw; color:var(--ink)}
+.kn-fact .h{font-family:var(--latin); font-size:2.15cqw; color:var(--ink-2)}
+.kn-fact .sim{
+  display:inline-flex; align-items:baseline; gap:.7cqw; margin-right:2.4cqw;
+  font-family:var(--latin); font-size:2.15cqw; color:var(--ink-2);
+}
+.kn-fact .sim b{font-family:var(--jp); font-weight:var(--jp-bold); font-size:3.1cqw; color:var(--ink)}
+
+.kn-words:empty{display:none}
+.kn-wh{
+  font-family:var(--jp); font-size:2.3cqw; letter-spacing:.12em; color:var(--ink-3);
+  margin-bottom:.4cqw;
+}
+.kn-words .bk-row{grid-template-columns:23cqw 18cqw 1fr; padding:.2cqw 0 .2cqw 1.4cqw}
+.kn-words .bk-row .r,.kn-words .bk-row .w{font-size:2.7cqw}
+.kn-words .bk-row .w{font-family:var(--latin); letter-spacing:.02em}
+.kn-words .bk-row .g{font-size:2.25cqw}
 
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important; transition-duration:.01ms!important}

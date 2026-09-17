@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kanji Drill Card</title>
+<title>Kana &amp; Kanji Drill Card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap">
@@ -11,41 +11,72 @@
 </head>
 <body>
 
-<!-- Shown until a deck is picked; each level is a separate download. -->
+<!-- Shown until a deck is picked; each deck is a separate download. -->
 <div class="chooser" id="chooser">
   <div class="chooser-box">
-    <p class="chooser-kicker">漢字ドリル</p>
+    <p class="chooser-kicker">かなドリル・漢字ドリル</p>
     <h1 class="chooser-title">Pick a deck</h1>
-    <p class="chooser-sub">Every jōyō kanji, grouped by JLPT level. The deck is shuffled
+    <p class="chooser-sub">The whole syllabary and every jōyō kanji. The deck is shuffled
       every time you start one.</p>
-    <div class="levels" id="levelList"></div>
+    <div class="groups" id="groupList"></div>
     <p class="chooser-note" id="chooserNote"></p>
   </div>
 </div>
+
+<!-- Two kinds of card, because they ask different questions. A kanji card asks which
+     reading each compound uses; a kana card asks what one character sounds like, so it
+     keeps romaji off the front entirely and spends the space on the syllabary instead. -->
+<template id="tplKanji">
+  <div class="face front">
+    <div class="no"></div>
+    <div class="glyph"></div>
+    <ol class="vocab"></ol>
+    <div class="related"></div>
+    <div class="code"></div>
+    <div class="strip"></div>
+    <div class="turn" aria-hidden="true">裏</div>
+  </div>
+  <div class="face back">
+    <div class="no"></div>
+    <div class="bk-k"></div>
+    <div class="bk-m"></div>
+    <hr>
+    <div class="bk-groups"></div>
+  </div>
+</template>
+
+<template id="tplKana">
+  <div class="face front kn">
+    <div class="no"></div>
+    <div class="kn-deck"></div>
+    <div class="kn-glyph"></div>
+    <ol class="vocab kn-vocab"></ol>
+    <div class="related kn-rel"></div>
+    <div class="kn-code"></div>
+    <div class="kn-map"></div>
+    <div class="strip"></div>
+    <div class="turn" aria-hidden="true">裏</div>
+  </div>
+  <div class="face back kn">
+    <div class="no"></div>
+    <div class="kn-c"></div>
+    <div class="kn-rom"></div>
+    <div class="kn-alt"></div>
+    <hr>
+    <div class="kn-body">
+      <div class="kn-facts"></div>
+      <div class="kn-words"></div>
+    </div>
+    <div class="kn-note"></div>
+  </div>
+</template>
 
 <div class="table" id="table" hidden>
   <div class="stage" id="stage">
     <div class="drop" aria-hidden="true"></div>
     <div class="dealer" id="dealer">
       <button class="card" id="card" aria-live="polite"
-              aria-label="Kanji card. Activate to turn it over.">
-        <div class="face front">
-          <div class="no"></div>
-          <div class="glyph"></div>
-          <ol class="vocab"></ol>
-          <div class="related"></div>
-          <div class="code"></div>
-          <div class="strip"></div>
-          <div class="turn" aria-hidden="true">裏</div>
-        </div>
-        <div class="face back">
-          <div class="no"></div>
-          <div class="bk-k"></div>
-          <div class="bk-m"></div>
-          <hr>
-          <div class="bk-groups"></div>
-        </div>
-      </button>
+              aria-label="Drill card. Activate to turn it over."></button>
     </div>
   </div>
 
@@ -57,7 +88,7 @@
     </div>
     <button class="pile draw" id="drawPile" aria-label="Draw pile. Activate to draw a card.">
       <div class="stack"></div>
-      <span class="mark">漢</span>
+      <span class="mark">山</span>
       <span class="tag">山札 <b id="drawN">0</b></span>
     </button>
   </div>
@@ -67,7 +98,7 @@
   <div class="hint" id="hint"></div>
   <button class="relevel" id="relevel">change deck</button>
 </div>
-<script src="data/levels.js"></script>
+<script src="data/decks.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>
