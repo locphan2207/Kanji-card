@@ -8,15 +8,33 @@ const okuri = s => s.replace(/^-/, "〜").replace(/\.(.+)$/, "（$1）");
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) {
   const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-// an empty copy of the card, taken before anything is painted into it
-const TEMPLATE = card.cloneNode(true);
-TEMPLATE.removeAttribute("id");
-
-let CARDS = [];
+let CARDS = [], DECK = null, KIND = "kanji";
 let deck = [], used = [], current = -1, busy = false, flipped = false;
 
-function cell(paths, n) {
-  const d = ss => ss.map(s => `<path d="${s}"/>`).join("");
+/* Two card shapes, kept as templates rather than one live node, because a deck is all
+   one kind and the table only ever holds cards from one deck. */
+const faces = kind => $(kind === "kana" ? "tplKana" : "tplKanji").content.cloneNode(true);
+
+function cardNode() {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.appendChild(faces(KIND));
+  return el;
+}
+
+/* One cell of the practice strip: a grey ghost of the finished character with the
+   cumulative build painted over it. `tx` places each stroke as (dx, dy, scale), which is
+   how a two-kana card draws きゃ as one drawing — き at size beside a small ゃ. The scale
+   goes to CSS as well as to the transform, so the pen stays the same width at both
+   sizes instead of thinning out with the glyph. */
+function cell(paths, tx, n) {
+  const d = ss => ss.map((s, i) => {
+    const t = tx && tx[i];
+    return t
+      ? `<path transform="translate(${t[0]},${t[1]}) scale(${t[2]})" style="--s:${t[2]}"`
+        + ` d="${s}"/>`
+      : `<path d="${s}"/>`;
+  }).join("");
   return `<div class="cell"><svg viewBox="0 0 109 109" aria-hidden="true">` +
     `<g class="gh">${d(paths)}</g><g class="dr">${d(paths.slice(0, n))}</g></svg></div>`;
 }
@@ -24,6 +42,10 @@ function cell(paths, n) {
 /* Paints any card-shaped node, so the table card, the pile tops and the flying card
    are all produced by the same code and can't drift apart visually. */
 function paint(root, c) {
+  (KIND === "kana" ? paintKana : paintKanji)(root, c);
+}
+
+function paintKanji(root, c) {
   const q = s => root.querySelector(s);
   q(".front .no").textContent = c.no;
   q(".glyph").textContent = c.k;
@@ -35,7 +57,7 @@ function paint(root, c) {
     `<span class="rg">${r.g}</span></div>`).join("");
   q(".code").innerHTML =
     `<span>${c.strokes}-${c.radN}-${c.restN}</span><span class="rad">${c.rad}</span>`;
-  q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, i + 1)).join("");
+  q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, null, i + 1)).join("");
 
   const on = c.on.map(kata).join("・"), kun = c.kun.map(okuri).join("・");
   q(".back .no").textContent = c.no;
@@ -53,18 +75,92 @@ function paint(root, c) {
   }).join("");
 }
 
+/* The gojuon table's shape: which of the fifty cells the syllabary actually filled.
+   や never took い or え, わ kept only あ and を, and ん sits outside the table. */
+const GOJUON = [        // あ か さ た な は ま や ら わ, each read as あいうえお
+  [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 1, 1], [1, 0, 0, 0, 1],
+];
+
+/* A thumbnail of that table with this card's cell inked, drawn beside the row that names
+   the position in words — seeing where か sits lands differently from reading "か行 あ段".
+   The table is printed in columns running right to left, so a 行 is a column, not a row. */
+function gojuon(c) {
+  const S = 3, G = 1;                   // cell and gap, in viewBox units
+  let out = "";
+  for (let dan = 0; dan < 5; dan++) {
+    for (let col = 0; col <= 10; col++) {
+      const gyou = 10 - col;            // column 0 is ん, then わ ら や … あ
+      const there = col === 0 ? dan === 0 : GOJUON[gyou][dan];
+      if (!there) continue;
+      const here = c.map === "n" ? col === 0 && dan === 0
+        : Array.isArray(c.map) && c.map[0] === gyou && c.map[1] === dan;
+      out += `<rect class="${here ? "here" : "on"}" width="${S}" height="${S}"` +
+        ` x="${col * (S + G)}" y="${dan * (S + G)}"/>`;
+    }
+  }
+  // One <svg> rather than a grid of elements: at phone width a 0.8cqw grid track rounds
+  // up to the next pixel, and five of those made the row tall enough to push the word
+  // list off the bottom of the card. A viewBox scales exactly.
+  return `<svg class="map" viewBox="0 0 ${11 * (S + G) - G} ${5 * (S + G) - G}"` +
+    ` aria-hidden="true">${out}</svg>` +
+    (c.mark ? `<span class="mmark">${c.mark}</span>` : "");
+}
+
+/* The front is the character and how to write it, and nothing else. Everything a kana
+   card used to carry here — the example words, the kana it is confused with — is the
+   answer to the question the front is asking, and the back already had all of it. */
+function paintKana(root, c) {
+  const q = s => root.querySelector(s);
+  const two = c.c.length > 1;
+  q(".front .no").textContent = c.no;
+  // one text run, not a span per character: きゃ is one unit, and the font already knows
+  // how big a small kana is beside a full one
+  q(".kn-glyph").className = "kn-glyph" + (two ? " two" : "");
+  q(".kn-glyph").textContent = c.c;
+  q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, c.tx, i + 1)).join("");
+
+  q(".back .no").textContent = c.no;
+  q(".kn-c").className = "kn-c" + (two ? " two" : "");
+  q(".kn-c").textContent = c.c;
+  // sokuon and chouon are names rather than sounds, and too long to set at full size
+  q(".kn-rom").className = "kn-rom" + (c.hep.length > 4 ? " long" : "");
+  q(".kn-rom").textContent = c.hep;
+  q(".kn-alt").textContent =
+    [c.code, c.kun && `kunrei ${c.kun}`].filter(Boolean).join(" \u00b7 ");
+  // 元 and 小 are already spelled out by the なりたち fact, so only the lookalikes and
+  // the kanji they collide with are worth a row of their own.
+  const sim = c.rel.filter(r => r.l === "似" || r.l === "漢");
+  q(".kn-facts").innerHTML = c.facts.map(([label, value, hint]) =>
+    `<div class="kn-fact"><b>${label}</b><span class="v">${value}</span>` +
+    `<span class="h">${hint}${label === "五十音" && c.map ? gojuon(c) : ""}</span>` +
+    `</div>`).join("") +
+    (sim.length ? `<div class="kn-fact"><b>似た字</b><span class="v">` +
+      sim.map(r => `<span class="sim"><b>${r.c}</b>${r.g}</span>`).join("") +
+      `</span><span class="h"></span></div>` : "");
+  q(".kn-words").innerHTML = c.vocab.length
+    ? `<div class="kn-wh">ことば</div>` + c.vocab.map(v =>
+        `<div class="bk-row"><span class="r">${v.w}</span>` +
+        `<span class="w">${v.r}</span><span class="g">${v.m}</span></div>`).join("")
+    : "";
+  q(".kn-note").textContent = c.note || "";
+}
+
 function setFlipped(next) {
   flipped = next;
   card.classList.toggle("flipped", flipped);
+  const back = KIND === "kana"
+    ? "Card back: the sound, and where the character sits in the syllabary."
+    : "Card back: readings and meanings.";
   card.setAttribute("aria-label", flipped
-    ? "Card back: readings and meanings. Activate to turn it back."
-    : "Kanji card. Activate to turn it over.");
+    ? back + " Activate to turn it back."
+    : "Drill card. Activate to turn it over.");
 }
 
 /* A pile's top card is a real face at full size, scaled down — the same object you
    are about to pick up, not a stand-in. */
 function miniFace(idx, which) {
-  const node = TEMPLATE.cloneNode(true);
+  const node = cardNode();
   paint(node, CARDS[idx]);
   const face = node.querySelector(which === "back" ? ".face.back" : ".face.front");
   face.style.transform = "none";          // .back normally carries rotateY(180deg)
@@ -108,7 +204,7 @@ const flight = (from, to) => ({
 });
 
 function makeFlyer(box, idx) {
-  const f = TEMPLATE.cloneNode(true);
+  const f = cardNode();
   paint(f, CARDS[idx]);
   f.className = "card flyer";
   Object.assign(f.style, {
@@ -198,11 +294,12 @@ addEventListener("keydown", e => {
 });
 
 /* ============ decks ============
-   One file per level, fetched only when that level is picked: the full set is about
-   3MB of stroke paths and nobody studies five levels at once. They load through a
+   One file per deck, fetched only when that deck is picked: the kanji half alone is
+   about 3MB of stroke paths and nobody studies five levels at once. They load through a
    <script> tag rather than fetch() so the page still runs from file:// with no server,
-   which is the whole point of the data being static. Each file calls KANJI_DECK. */
-const chooser = $("chooser"), levelList = $("levelList"), note = $("chooserNote");
+   which is the whole point of the data being static. Each file calls KANJI_DECK — the
+   name the loader has always had, kept so the generated kanji files stay untouched. */
+const chooser = $("chooser"), groupList = $("groupList"), note = $("chooserNote");
 const table = $("table"), controls = $("controls");
 const decks = {}, waiting = {};
 
@@ -218,49 +315,70 @@ function loadDeck(id) {
   return new Promise((resolve, reject) => {
     waiting[id] = [resolve];
     const tag = document.createElement("script");
-    tag.src = `data/levels/${id}.js`;
+    tag.src = `data/decks/${id}.js`;
     tag.onerror = () => { delete waiting[id]; reject(new Error(`could not load ${id}`)); };
     document.head.appendChild(tag);
   });
 }
 
-function deal(cards, label) {
-  CARDS = cards;
+function deal(cards, meta) {
+  CARDS = cards; DECK = meta; KIND = meta.kind;
+  card.replaceChildren(faces(KIND));
   used = []; busy = false;
   current = Math.floor(Math.random() * CARDS.length);
   deck = shuffle(CARDS.map((_, i) => i).filter(i => i !== current));
   setFlipped(false);
   paint(card, CARDS[current]);
   renderPiles();
-  $("relevel").textContent = `${label} · change deck`;
+  $("relevel").textContent = `${meta.group} ${meta.label} · change deck`;
   chooser.hidden = true; table.hidden = false; controls.hidden = false;
   card.focus();
+}
+
+function deckButton(d) {
+  const b = document.createElement("button");
+  b.className = "level";
+  b.innerHTML = `<span class="lv">${d.label}</span>` +
+    (d.rom ? `<span class="lv-rom">${d.rom}</span>` : "") +
+    `<span class="lv-n">${d.n} cards</span>`;
+  b.addEventListener("click", () => {
+    if (groupList.classList.contains("busy")) return;
+    groupList.classList.add("busy");
+    b.classList.add("loading");
+    note.textContent = decks[d.id] ? "" : "shuffling the deck…";
+    loadDeck(d.id)
+      .then(cards => { groupList.classList.remove("busy"); deal(cards, d); })
+      .catch(err => {
+        groupList.classList.remove("busy");
+        b.classList.remove("loading");
+        note.textContent = `${err.message}. Check that frontend/data/decks/ was built.`;
+      });
+  });
+  return b;
 }
 
 function renderChooser() {
   chooser.hidden = false; table.hidden = true; controls.hidden = true;
   note.textContent = "";
-  levelList.innerHTML = "";
-  LEVELS.forEach(lv => {
-    const b = document.createElement("button");
-    b.className = "level";
-    b.innerHTML = `<span class="lv">${lv.label}</span><span class="lv-n">${lv.n} cards</span>`;
-    b.addEventListener("click", () => {
-      if (levelList.classList.contains("busy")) return;
-      levelList.classList.add("busy");
-      b.classList.add("loading");
-      note.textContent = decks[lv.id] ? "" : "shuffling the deck…";
-      loadDeck(lv.id)
-        .then(cards => { levelList.classList.remove("busy"); deal(cards, lv.label); })
-        .catch(err => {
-          levelList.classList.remove("busy");
-          b.classList.remove("loading");
-          note.textContent = `${err.message}. Check that frontend/data/levels/ was built.`;
-        });
-    });
-    levelList.appendChild(b);
+  groupList.innerHTML = "";
+  const groups = [];
+  DECKS.forEach(d => {
+    let g = groups.find(x => x.name === d.group);
+    if (!g) groups.push(g = { name: d.group, decks: [] });
+    g.decks.push(d);
   });
-  (levelList.firstElementChild || {}).tabIndex = 0;
+  groups.forEach(g => {
+    const row = document.createElement("div");
+    row.className = "group";
+    const name = document.createElement("div");
+    name.className = "group-name";
+    name.textContent = g.name;
+    const list = document.createElement("div");
+    list.className = "levels";
+    g.decks.forEach(d => list.appendChild(deckButton(d)));
+    row.append(name, list);
+    groupList.appendChild(row);
+  });
 }
 
 $("relevel").addEventListener("click", renderChooser);

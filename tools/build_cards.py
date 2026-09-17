@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Build frontend/data/ from open Japanese language data: one deck per JLPT level.
+"""Build frontend/data/ from open Japanese language data: one file per deck.
 
     python3 tools/build_cards.py
 
-Every jouyou kanji becomes a card. Cards are grouped into the five JLPT levels and
-written as one file per level, so the app downloads only the deck you pick.
+Every jouyou kanji becomes a card, grouped into the five JLPT levels, and every kana
+slot becomes a card, grouped by script and by how far past the plain syllabary it sits.
+One file per deck, so the app downloads only the deck you pick.
+
+The kana half lives in build_kana.py and kana_tables.py; this file owns the sources, the
+manifest, and the writing, so there is one place that knows what a deck file looks like.
 
 Sources (all cached under tools/cache/, so reruns are offline)
   KANJIDIC2 (radical, grade, frequency, readings, meanings)  EDRDG, CC BY-SA 4.0
@@ -21,6 +25,9 @@ usual community reconstruction, not an official list.
 """
 import csv, json, os, re, sys, unicodedata, urllib.request, zipfile
 from collections import Counter, defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import build_kana
 
 ROOT  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "tools", "cache")
@@ -81,7 +88,10 @@ def load_json_zip(name):
 def load_jlpt_vocab():
     """Which words the JLPT actually tests, and at which level. JMdict marks a word common
     or not with nothing in between, so this is the signal that decides which of a kanji's
-    hundreds of compounds a learner should meet first."""
+    hundreds of compounds a learner should meet first.
+
+    Keyed by how a word is written, which is the form a kanji card shows. The kana cards
+    need it keyed by how it is read instead; that is load_jlpt_readings below."""
     levels = {}
     for n in (1, 2, 3, 4, 5):                 # easiest level wins, so read hardest first
         with open(fetch(f"vocab-n{n}.csv"), encoding="utf-8") as fh:
@@ -90,6 +100,27 @@ def load_jlpt_vocab():
                 if expr:
                     levels[expr] = n
     return levels
+
+
+def load_jlpt_readings():
+    """reading -> (level, the form it is written in, the meaning the list tests it with).
+
+    A kana card can only show a word as it is read, and a reading is usually several
+    dictionary entries: あか is 赤 and 垢, かてい is 家庭 and 仮定 and 課程 and 過程.
+    JMdict cannot rank its own homographs, but the JLPT lists can, because they pair each
+    reading with a level and a written form - あか is 赤 at N5 and 垢 at N1. The easiest
+    level's form is the one a kana card means, and it is enough to pick the right JMdict
+    entry, whose glosses are ordered by prominence where the lists' are not (the lists
+    gloss 甘い as "generous, sweet")."""
+    out = {}
+    for n in (1, 2, 3, 4, 5):                 # easiest level wins, so read hardest first
+        with open(fetch(f"vocab-n{n}.csv"), encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                reading = (row.get("reading") or "").strip()
+                if reading:
+                    out[reading] = (n, (row.get("expression") or "").strip(),
+                                    (row.get("meaning") or "").strip())
+    return out
 
 
 def hira(s):
@@ -204,6 +235,23 @@ def pick_gloss(meanings, avoid=()):
     ms = [m.lower() for m in meanings if not BAD_MEANING.search(m)]
     ms = ms or [m.lower() for m in meanings] or ["?"]
     return min(([m for m in ms if m not in avoid] or ms)[:4], key=len)
+
+
+def make_kanji_gloss(chars):
+    """A short meaning for any character KANJIDIC knows. The kana cards need it for their
+    字源 kanji, which are mostly outside the jouyou set (无, 尔, 祢, 曽)."""
+    cache = {}
+
+    def gloss(ch):
+        if ch not in cache:
+            c = chars.get(ch) or {}
+            rm = c.get("readingMeaning") or {}
+            means = [m["value"] for g in (rm.get("groups") or [])
+                     for m in g.get("meanings", []) if m.get("lang") == "en"]
+            cache[ch] = pick_gloss(means) if means else ""
+        return cache[ch]
+
+    return gloss
 
 
 def word_gloss(glosses, cap=26):
@@ -449,25 +497,34 @@ def main():
             "on": e["on"][:3], "kun": e["kun"][:3], "mean": e["gloss"],
         })
 
-    os.makedirs(os.path.join(OUT, "levels"), exist_ok=True)
+    print("kana", file=sys.stderr)
+    kana_decks = build_kana.build_decks(
+        vg, jm, load_jlpt_readings(), word_gloss, make_kanji_gloss(chars),
+        log=lambda m: print(m, file=sys.stderr))
+
+    os.makedirs(os.path.join(OUT, "decks"), exist_ok=True)
     manifest = []
-    for lvl in LEVELS:
-        cards = decks[lvl]
-        name = f"n{lvl}"
-        path = os.path.join(OUT, "levels", f"{name}.js")
+    # Kana first: it is where a learner starts, and the chooser reads top to bottom.
+    written = list(kana_decks)
+    written += [({"id": f"n{lvl}", "label": f"N{lvl}", "rom": "", "group": "漢字",
+                  "kind": "kanji", "n": len(decks[lvl])}, decks[lvl]) for lvl in LEVELS]
+    for meta, cards in written:
+        path = os.path.join(OUT, "decks", f"{meta['id']}.js")
         with open(path, "w", encoding="utf-8") as fh:
             fh.write("/* Generated by tools/build_cards.py - do not edit by hand. */\n")
-            fh.write(f"KANJI_DECK({json.dumps(name)}," + json.dumps(
+            fh.write(f"KANJI_DECK({json.dumps(meta['id'])}," + json.dumps(
                 cards, ensure_ascii=False, separators=(",", ":")) + ");\n")
         kb = os.path.getsize(path) / 1024
-        manifest.append({"id": name, "label": f"N{lvl}", "n": len(cards)})
-        print(f"  {name}: {len(cards):4} cards  {kb:7.0f} KB", file=sys.stderr)
+        manifest.append(meta)
+        print(f"  {meta['id']:11} {len(cards):4} cards  {kb:7.0f} KB", file=sys.stderr)
 
-    with open(os.path.join(OUT, "levels.js"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(OUT, "decks.js"), "w", encoding="utf-8") as fh:
         fh.write("/* Generated by tools/build_cards.py - do not edit by hand. */\n")
-        fh.write("const LEVELS = " + json.dumps(manifest, ensure_ascii=False) + ";\n")
+        fh.write("const DECKS = " + json.dumps(manifest, ensure_ascii=False) + ";\n")
 
-    print(f"{sum(len(d) for d in decks.values())} cards across {len(manifest)} levels")
+    kana_n = sum(m["n"] for m, _ in kana_decks)
+    print(f"{sum(len(d) for d in decks.values())} kanji cards and {kana_n} kana cards "
+          f"across {len(manifest)} decks")
     print(f"readings classified: {tally['on']} on, {tally['kun']} kun, {tally['irr']} irregular")
     if thin:
         print(f"{len(thin)} kanji have fewer than 6 example words: {''.join(thin[:20])}"
