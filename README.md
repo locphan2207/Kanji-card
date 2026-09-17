@@ -4,8 +4,10 @@ A single-screen Japanese study app built as a card table: a face-up draw pile, t
 you are studying, and a face-down-ish discard. Draw a card, study it, turn it over to
 check the answer, draw again.
 
-The card itself is modelled on a physical Japanese 漢字ドリル card — landscape, with a
-numbered list of words, a cross-reference box, a code line, and a practice strip.
+The kanji card is modelled on a physical Japanese 漢字ドリル card — landscape, with a
+numbered list of compounds, a cross-reference box, a code line, and a practice strip. The
+kana card is the same stock asking a much smaller question, so its front is the character
+and the stroke order and nothing else.
 
 Two kinds of card, because they ask different questions. A **kanji card** asks which
 reading each compound uses; all 2,136 jōyō kanji are here, dealt as five decks by JLPT
@@ -104,38 +106,45 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 ## The kana card
 
 A kanji card and a kana card are the same piece of card stock — same stock, same shadow,
-same practice strip, same cross-reference box — and depart only where the kanji card's
-layout would be lying. There is no radical to print and no compound reading to withhold.
+same practice strip — but they ask questions of very different size, and the fronts show
+it.
 
-**The front never says the sound.** That is the whole contract: glyph, words written in
-the deck's own script, strokes, and a warning about the characters this one gets mistaken
-for. Romaji lives on the back with the rest of the answer. It is the same deal a kanji
-card makes — the front shows you 長 and six compounds and makes you recall チョウ — and it
-is why the card is worth turning over.
+**The front is the character and how to write it.** Nothing else. A kanji card's front
+has to be dense, because asking which reading each compound takes means printing six
+compounds to ask it with; the radical code and the cross-reference box are part of the
+same question. A kana card asks what one character sounds like. The glyph and the stroke
+order is the whole question, so the front is a large character and a row of practice
+squares, and that is the entire design.
 
-**The gojūon table is the kana answer to the radical code.** Where a kanji card prints
-`8-8-0 長`, a kana card prints a thumbnail of the fifty-sound table with its own cell
-inked. It says where the character sits without saying what it says, which is exactly
-what the front is allowed to do. It is drawn the way the table is printed — a 行 is a
-column, columns run right to left, ん sits outside — so the silhouette is recognisable:
-the notches are where や lost い and え and where わ kept only two. Built-up kana ink the
-cell of the character underneath them and hang the ゛or ゜beside it, so ジョ inks シ and
-still says it is ジョ.
+It did not start that way. The front also carried the six example words with 圏点 over the
+target kana, a 似た字 box, the stroke count and a thumbnail of the gojūon table — a kanji
+card's density applied to a card that had nothing like a kanji card's question. Every one
+of those was either the answer the back already gave, or decoration. They came off.
 
-**The cross-reference box asks the same question as the kanji card's, and gets a
-different answer.** A kanji card points at kanji sharing a component. A plain kana has no
-components, so it points at the characters it is *confused* with — し／つ, シ／ツ, ソ／ン,
-and カ／力, ロ／口, エ／工, where the collision is with a kanji. That is the one thing a
-kana card can warn about that no dataset knows, which is why those pairs are written out
-by hand. A built-up kana has components after all, so it shows them instead: が is 元 か,
-きゃ is 元 き and 小 ゃ, ぱ is 元 は and 濁 ば. じ and ぢ point at each other, because
-that is the pair that actually needs explaining.
+**Everything else is the answer, so it is on the back.** The sound in romaji (and kunrei
+where the two disagree — し is shi or si), the stroke count, where it sits in the gojūon
+table both named and drawn, the kanji it was cursived down from, its counterpart in the
+other script, the characters it gets mistaken for with their sounds, six example words
+with romaji and glosses, and for the dozen kana that need it a note. The front withholds
+exactly one thing, and the back is where you go to get it.
 
-**Words carry 圏点.** The dot a Japanese text puts over an emphasised character marks
-where the card's kana falls in each word — か is easy to spot at the front of かさ and
-easy to miss in なかなか. It is drawn as a pseudo-element rather than set with
-`text-emphasis`, which reserves a line box for the mark and would push six words of
-leading down into the practice strip.
+**The gojūon thumbnail is drawn next to the row that names the position.** "か行 あ段"
+and a picture of the table with か lit are not the same information; the picture shows you
+the shape of the syllabary, with its notches where や lost い and え and where わ kept only
+two. It is printed the way the table is printed — a 行 is a column, columns run right to
+left, ん sits outside. Built-up kana light the cell of the character underneath them and
+hang the ゛or ゜beside it, so ジョ lights シ and still says it is ジョ. It is one `<svg>`
+rather than a grid of elements, because at phone width a 0.8cqw grid track rounds up to
+the next whole pixel and five of those made the row tall enough to push the word list off
+the bottom of the card.
+
+**似た字 is the one thing on the card that no dataset knows.** A kanji card cross-
+references kanji sharing a component. A plain kana has no components, so what is worth
+saying is which characters it is *confused* with — し／つ, シ／ツ, ソ／ン, and カ／力,
+ロ／口, エ／工 where the collision is with a kanji. Those pairs are written out by hand,
+because there is nowhere to derive them from. A built-up kana has components after all,
+so it gets なりたち instead: が is か plus ゛, きゃ is き plus ゃ. じ and ぢ point at each
+other, because that is the pair that actually needs explaining.
 
 **A two-kana card is drawn as one character, because it is one beat.** きゃ is not き then
 ゃ; the strip builds き stroke by stroke and then adds ゃ's three, all inside one practice
@@ -145,8 +154,10 @@ the stroke weight — left alone, ァ at 0.42 would be drawn with a pen less tha
 wide as フ's and all but vanish at card size.
 
 **The strip ends where the strokes do.** A kanji card spreads eight to twenty cells
-across the full card width; a kana card has one to nine, so its cells stay square and the
-box stops after the last stroke rather than stretching. Padding the row out to a fixed
+across the full card width; a kana card has one to nine, so its cells are square, centred
+under the character, and the box stops after the last stroke rather than stretching. The
+strip is anchored by its bottom edge, because keeping the cells square means its height
+follows how many of them there are. Padding the row out to a fixed
 width instead — the spare cells carrying the ghost alone, as practice squares to trace —
 was tried and read as a rendering failure: on し, five of six cells showed the same
 finished kana and taught nothing, and on half the kana the padding was most of the strip.

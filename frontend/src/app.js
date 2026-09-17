@@ -82,50 +82,42 @@ const GOJUON = [        // あ か さ た な は ま や ら わ, each read as
   [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 0, 1, 0, 1], [1, 1, 1, 1, 1], [1, 0, 0, 0, 1],
 ];
 
-/* A thumbnail of that table with this card's cell inked — the kana answer to the kanji
-   card's radical code. It says where the character sits without saying what it sounds
-   like, which is the whole contract of the front of a card. The table is printed in
-   columns running right to left, so a 行 is drawn as a column, not a row. */
+/* A thumbnail of that table with this card's cell inked, drawn beside the row that names
+   the position in words — seeing where か sits lands differently from reading "か行 あ段".
+   The table is printed in columns running right to left, so a 行 is a column, not a row. */
 function gojuon(c) {
-  let cells = "";
+  const S = 3, G = 1;                   // cell and gap, in viewBox units
+  let out = "";
   for (let dan = 0; dan < 5; dan++) {
     for (let col = 0; col <= 10; col++) {
-      const gyou = 10 - col;              // column 0 is ん, then わ ら や … あ
+      const gyou = 10 - col;            // column 0 is ん, then わ ら や … あ
       const there = col === 0 ? dan === 0 : GOJUON[gyou][dan];
+      if (!there) continue;
       const here = c.map === "n" ? col === 0 && dan === 0
         : Array.isArray(c.map) && c.map[0] === gyou && c.map[1] === dan;
-      cells += `<i class="${there ? "on" : "off"}${here ? " here" : ""}"></i>`;
+      out += `<rect class="${here ? "here" : "on"}" width="${S}" height="${S}"` +
+        ` x="${col * (S + G)}" y="${dan * (S + G)}"/>`;
     }
   }
-  return `<span class="mlab">五十音</span><span class="grid">${cells}</span>` +
+  // One <svg> rather than a grid of elements: at phone width a 0.8cqw grid track rounds
+  // up to the next pixel, and five of those made the row tall enough to push the word
+  // list off the bottom of the card. A viewBox scales exactly.
+  return `<svg class="map" viewBox="0 0 ${11 * (S + G) - G} ${5 * (S + G) - G}"` +
+    ` aria-hidden="true">${out}</svg>` +
     (c.mark ? `<span class="mmark">${c.mark}</span>` : "");
 }
 
-/* Japanese marks emphasis with a dot over the character (圏点). Used here to show where
-   the card's kana falls inside each word, which is the thing a plain list hides: か is
-   easy to spot at the front of かさ and easy to miss in なかなか. */
-const emphasise = (word, target) => word.split(target).join(`<em>${target}</em>`);
-
+/* The front is the character and how to write it, and nothing else. Everything a kana
+   card used to carry here — the example words, the kana it is confused with — is the
+   answer to the question the front is asking, and the back already had all of it. */
 function paintKana(root, c) {
   const q = s => root.querySelector(s);
   const two = c.c.length > 1;
   q(".front .no").textContent = c.no;
-  q(".kn-deck").textContent = DECK ? `${DECK.group}・${DECK.label}` : "";
   // one text run, not a span per character: きゃ is one unit, and the font already knows
   // how big a small kana is beside a full one
   q(".kn-glyph").className = "kn-glyph" + (two ? " two" : "");
   q(".kn-glyph").textContent = c.c;
-  // one span, not bare text: the li is a flex row, so an <em> alongside loose text
-  // would become a second flex item and take the row's gap with it
-  q(".kn-vocab").innerHTML = c.vocab.map((v, i) =>
-    `<li><span class="n">${i + 1}.</span><span class="w">${emphasise(v.w, c.c)}</span></li>`
-  ).join("");
-  q(".kn-rel").innerHTML = c.rel.map(r =>
-    `<div class="rel"><span class="rn">${r.l}</span><span class="rk">${r.c}</span></div>`
-  ).join("");
-  q(".kn-code").innerHTML = `<span>${c.code}</span>`;
-  // ー and the two kana the 1946 reform retired have no cell in the table to point at
-  q(".kn-map").innerHTML = c.map ? gojuon(c) : "";
   q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, c.tx, i + 1)).join("");
 
   q(".back .no").textContent = c.no;
@@ -134,13 +126,15 @@ function paintKana(root, c) {
   // sokuon and chouon are names rather than sounds, and too long to set at full size
   q(".kn-rom").className = "kn-rom" + (c.hep.length > 4 ? " long" : "");
   q(".kn-rom").textContent = c.hep;
-  q(".kn-alt").textContent = c.kun ? `kunrei ${c.kun}` : "";
+  q(".kn-alt").textContent =
+    [c.code, c.kun && `kunrei ${c.kun}`].filter(Boolean).join(" \u00b7 ");
   // 元 and 小 are already spelled out by the なりたち fact, so only the lookalikes and
   // the kanji they collide with are worth a row of their own.
   const sim = c.rel.filter(r => r.l === "似" || r.l === "漢");
   q(".kn-facts").innerHTML = c.facts.map(([label, value, hint]) =>
     `<div class="kn-fact"><b>${label}</b><span class="v">${value}</span>` +
-    `<span class="h">${hint}</span></div>`).join("") +
+    `<span class="h">${hint}${label === "五十音" && c.map ? gojuon(c) : ""}</span>` +
+    `</div>`).join("") +
     (sim.length ? `<div class="kn-fact"><b>似た字</b><span class="v">` +
       sim.map(r => `<span class="sim"><b>${r.c}</b>${r.g}</span>`).join("") +
       `</span><span class="h"></span></div>` : "");

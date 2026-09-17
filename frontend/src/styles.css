@@ -362,77 +362,36 @@ body{
 
 
 /* ============ the kana card ============
-   Same stock, same strip, same cross-reference box as a kanji card — it is the same
-   physical card — but the content answers a different question, so the geometry departs
-   where the kanji card's would be lying. There is no radical code to print and no
-   reading to withhold; what a kana card withholds is the sound, which lives on the back
-   alongside the one diagram a kanji card has no use for: the gojuon table. */
-/* under the strip, where a kanji card has nothing: the cross-reference box owns the
-   top-right corner and the discard pile shows this label as the card lands */
-.kn-deck{
-  position:absolute; left:6.4cqw; bottom:2.8cqw;
-  font-family:var(--jp); font-size:2.2cqw; letter-spacing:.12em; color:var(--ink-3);
-}
+   Same stock, same practice strip, same shadow as a kanji card — it is the same physical
+   card — but it asks a far smaller question, so the front is far emptier. A kanji card's
+   front has to be dense: six compounds, a cross-reference box and a radical code are all
+   part of asking which reading each compound takes. A kana card asks what one character
+   sounds like. The character and how to write it is the whole question; the words, the
+   lookalikes and the syllabary position are the answer, and the answer is on the back. */
 .kn-glyph{
-  position:absolute; left:4.4cqw; top:8cqw; width:39.4cqw; height:31cqw;
+  position:absolute; left:0; right:0; top:3cqw; height:41cqw;
   display:flex; align-items:center; justify-content:center; white-space:nowrap;
-  font-family:var(--jp); font-weight:var(--jp-bold); line-height:1; color:var(--ink);
+  font-family:var(--jp); font-size:38cqw; font-weight:var(--jp-bold); line-height:1;
+  color:var(--ink);
   -webkit-text-stroke:var(--glyph-edge) currentColor;
 }
-.kn-glyph{font-size:30cqw}
-/* きゃ is two characters written as one beat, so it is set as one run and only has to
-   be brought down to a width the card can hold. */
-/* a small kana still takes a full em of advance, so the pair is two ems wide whatever
-   it looks like — the size has to come down to fit, not just the glyph */
-.kn-glyph.two{font-size:18.6cqw; letter-spacing:-.03em}
+/* きゃ is two characters written as one beat, so it is set as one run. A small kana still
+   takes a full em of advance, so the pair is two ems wide whatever it looks like — the
+   size has to come down to fit, not just the glyph. */
+.kn-glyph.two{font-size:30cqw; letter-spacing:-.03em}
 
-.kn-vocab{font-size:3.8cqw}
-.kn-vocab li{align-items:baseline}
-.kn-vocab .w{white-space:nowrap}
-/* 圏点 — the dot a Japanese text puts over an emphasised character. Here it marks where
-   the card's kana falls in each word, which a flat list of words hides.
-   Drawn rather than set with text-emphasis, which reserves a line box for the mark and
-   would push six words of leading down into the practice strip. */
-.kn-vocab em{position:relative; font-style:normal}
-.kn-vocab em::after{
-  content:""; position:absolute; left:50%; top:-.22em; transform:translateX(-50%);
-  width:.13em; height:.13em; border-radius:50%; background:var(--ink-3);
+/* One square per stroke, centred under the character, and the box ends where the strokes
+   do. A kanji card can spread its cells across the full width because it has eight to
+   twenty of them; し has one, and padding the row out with repeats of the finished
+   character taught nothing and read as an empty strip. */
+.kn .strip{
+  left:50%; transform:translateX(-50%); top:auto; bottom:10cqw;
+  width:max-content; max-width:84cqw; height:auto;
 }
-/* the cross-reference box holds bare characters here, so the glyph takes the whole cell */
-.kn-rel:empty{display:none}       /* ー is built from nothing and looks like nothing */
-.kn-rel .rel{padding:1.8cqw 0 .8cqw}
-.kn-rel .rk{font-size:9cqw}
-.kn-rel .rn{font-family:var(--jp); font-size:2.1cqw; color:var(--ink-3); top:.75cqw}
-
-/* One square per stroke, and the box ends where the strokes do. A kanji card can spread
-   its cells across the full width because it has eight to twenty of them; し has one, and
-   padding the row out with repeats of the finished character taught nothing and read as
-   an empty strip. */
-.kn .strip{width:max-content; max-width:88.8cqw}
-.kn .cell{flex:0 1 13.9cqw}
-
-.kn-code{
-  position:absolute; left:6.4cqw; top:43.4cqw;
-  font-family:var(--latin); font-weight:300; font-size:2.95cqw; letter-spacing:.09em;
-  color:var(--ink);
-}
-/* The gojuon table in miniature, one cell inked. Printed the way the table is printed:
-   a 行 is a column, and the columns run right to left, with ん off on its own. */
-.kn-map{
-  position:absolute; left:17.5cqw; top:42.6cqw;
-  display:flex; align-items:center; gap:1.4cqw;
-}
-.kn-map .mlab{
-  font-family:var(--jp); font-size:1.85cqw; letter-spacing:.1em; color:var(--ink-3);
-  line-height:1.4;
-}
-.kn-map .grid{
-  display:grid; grid-template-columns:repeat(11,1.05cqw); grid-auto-rows:1.05cqw; gap:.32cqw;
-}
-.kn-map i{border-radius:.15cqw}
-.kn-map i.on{background:var(--ghost)}
-.kn-map i.here{background:var(--ink)}
-.kn-map .mmark{font-family:var(--jp); font-size:2.7cqw; color:var(--ink); line-height:1.1}
+/* Square cells, so a nine-stroke ぎゃ compresses to nine small squares rather than nine
+   tall slivers with the drawing letterboxed inside. The strip is anchored by its bottom
+   because its height now follows the cell size. */
+.kn .cell{flex:0 1 17cqw; aspect-ratio:1}
 
 /* ---- kana back ----
    The header block is the character itself: the glyph, the sound it makes, and — for the
@@ -477,7 +436,16 @@ body{
   letter-spacing:.12em; color:var(--ink-3); white-space:nowrap;
 }
 .kn-fact .v{font-family:var(--jp); font-size:3.1cqw; color:var(--ink)}
-.kn-fact .h{font-family:var(--latin); font-size:2.15cqw; color:var(--ink-2)}
+.kn-fact .h{
+  font-family:var(--latin); font-size:2.15cqw; color:var(--ink-2);
+  display:flex; align-items:center; justify-content:flex-end; gap:1.5cqw;
+}
+/* The gojuon table in miniature, one cell inked, printed the way the table is printed:
+   a 行 is a column, the columns run right to left, and ん sits off on its own. */
+.kn-fact .map{height:4cqw; width:auto; flex:none; overflow:visible}
+.kn-fact .map .on{fill:var(--ghost)}
+.kn-fact .map .here{fill:var(--ink)}
+.kn-fact .mmark{font-family:var(--jp); font-size:2.4cqw; color:var(--ink); line-height:1}
 .kn-fact .sim{
   display:inline-flex; align-items:baseline; gap:.7cqw; margin-right:2.4cqw;
   font-family:var(--latin); font-size:2.15cqw; color:var(--ink-2);

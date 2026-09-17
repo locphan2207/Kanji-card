@@ -24,8 +24,9 @@
 </div>
 
 <!-- Two kinds of card, because they ask different questions. A kanji card asks which
-     reading each compound uses; a kana card asks what one character sounds like, so it
-     keeps romaji off the front entirely and spends the space on the syllabary instead. -->
+     reading each compound uses, and needs a front dense enough to ask it. A kana card
+     asks only what one character sounds like, so its front is the character and how to
+     write it; everything else is the answer, and the answer is on the back. -->
 <template id="tplKanji">
   <div class="face front">
     <div class="no"></div>
@@ -48,12 +49,7 @@
 <template id="tplKana">
   <div class="face front kn">
     <div class="no"></div>
-    <div class="kn-deck"></div>
     <div class="kn-glyph"></div>
-    <ol class="vocab kn-vocab"></ol>
-    <div class="related kn-rel"></div>
-    <div class="kn-code"></div>
-    <div class="kn-map"></div>
     <div class="strip"></div>
     <div class="turn" aria-hidden="true">裏</div>
   </div>
