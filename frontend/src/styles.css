@@ -292,6 +292,58 @@ body{
 .fbtn[aria-pressed="true"]{opacity:1; background:var(--ink); color:var(--stock); border-color:var(--ink)}
 .fbtn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 .caption{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ui); opacity:.5}
+/* ============ deck chooser ============
+   Shown before any deck is loaded. The level buttons are small cards in the same stock
+   and shadow as the real one, so the choice reads as picking a deck off the table. */
+.chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
+.chooser-box{max-width:560px; text-align:center}
+.chooser-kicker{
+  font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
+  color:var(--ui); opacity:.6;
+}
+.chooser-title{
+  font-family:var(--latin); font-size:13px; font-weight:500; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ui); margin:0 0 12px;
+}
+.chooser-sub{
+  font-family:var(--latin); font-size:12.5px; line-height:1.65; color:var(--ui);
+  opacity:.65; margin:0 auto 26px; max-width:40ch;
+}
+.levels{display:flex; flex-wrap:wrap; gap:12px; justify-content:center}
+.level{
+  width:88px; aspect-ratio:1.38; flex:0 0 auto; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  background:linear-gradient(160deg,var(--stock),var(--stock-2));
+  border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);
+  transition:transform .13s ease, box-shadow .13s ease;
+}
+.level .lv{
+  font-family:var(--latin); font-size:19px; font-weight:500; letter-spacing:.08em;
+  color:var(--ink);
+}
+.level .lv-n{
+  font-family:var(--latin); font-size:9px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3);
+}
+.level:hover{transform:translateY(-3px)}
+.level:active{transform:translateY(-1px)}
+.level:focus-visible{outline:2px solid var(--ink); outline-offset:4px}
+.levels.busy .level{cursor:progress}
+.levels.busy .level:not(.loading){opacity:.45}
+.level.loading{animation:deal .9s ease-in-out infinite}
+@keyframes deal{50%{transform:translateY(-5px)}}
+.chooser-note{
+  font-family:var(--latin); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ui); opacity:.6; margin:22px 0 0; min-height:1em;
+}
+.relevel{
+  font-family:var(--latin); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase;
+  background:transparent; color:var(--ui); border:1px solid currentColor; border-radius:2px;
+  padding:6px 12px; cursor:pointer; opacity:.5; transition:opacity .12s ease;
+}
+.relevel:hover{opacity:.9}
+.relevel:focus-visible{outline:2px solid var(--ink); outline-offset:3px; opacity:.9}
+
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important; transition-duration:.01ms!important}
 }

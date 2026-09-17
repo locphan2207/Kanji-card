@@ -10,7 +10,20 @@
 <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
-<div class="table">
+
+<!-- Shown until a deck is picked; each level is a separate download. -->
+<div class="chooser" id="chooser">
+  <div class="chooser-box">
+    <p class="chooser-kicker">漢字ドリル</p>
+    <h1 class="chooser-title">Pick a deck</h1>
+    <p class="chooser-sub">Every jōyō kanji, grouped by JLPT level. The deck is shuffled
+      every time you start one.</p>
+    <div class="levels" id="levelList"></div>
+    <p class="chooser-note" id="chooserNote"></p>
+  </div>
+</div>
+
+<div class="table" id="table" hidden>
   <div class="stage" id="stage">
     <div class="drop" aria-hidden="true"></div>
     <div class="dealer" id="dealer">
@@ -50,10 +63,11 @@
   </div>
 </div>
 
-<div class="controls">
+<div class="controls" id="controls" hidden>
   <div class="hint" id="hint"></div>
+  <button class="relevel" id="relevel">change deck</button>
 </div>
-<script src="data/cards.js"></script>
+<script src="data/levels.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>
