@@ -404,6 +404,13 @@ body{
 .kn-rel .rk{font-size:9cqw}
 .kn-rel .rn{font-family:var(--jp); font-size:2.1cqw; color:var(--ink-3); top:.75cqw}
 
+/* One square per stroke, and the box ends where the strokes do. A kanji card can spread
+   its cells across the full width because it has eight to twenty of them; し has one, and
+   padding the row out with repeats of the finished character taught nothing and read as
+   an empty strip. */
+.kn .strip{width:max-content; max-width:88.8cqw}
+.kn .cell{flex:0 1 13.9cqw}
+
 .kn-code{
   position:absolute; left:6.4cqw; top:43.4cqw;
   font-family:var(--latin); font-weight:300; font-size:2.95cqw; letter-spacing:.09em;

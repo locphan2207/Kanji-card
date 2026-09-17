@@ -39,14 +39,6 @@ function cell(paths, tx, n) {
     `<g class="gh">${d(paths)}</g><g class="dr">${d(paths.slice(0, n))}</g></svg></div>`;
 }
 
-/* Cells past the last stroke show the ghost alone: the drill card's blank squares, for
-   tracing. Kana are short enough that a strip of four would look unfinished. */
-function strip(paths, tx, cells) {
-  let out = "";
-  for (let i = 0; i < cells; i++) out += cell(paths, tx, i < paths.length ? i + 1 : 0);
-  return out;
-}
-
 /* Paints any card-shaped node, so the table card, the pile tops and the flying card
    are all produced by the same code and can't drift apart visually. */
 function paint(root, c) {
@@ -65,7 +57,7 @@ function paintKanji(root, c) {
     `<span class="rg">${r.g}</span></div>`).join("");
   q(".code").innerHTML =
     `<span>${c.strokes}-${c.radN}-${c.restN}</span><span class="rad">${c.rad}</span>`;
-  q(".strip").innerHTML = strip(c.paths, null, c.paths.length);
+  q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, null, i + 1)).join("");
 
   const on = c.on.map(kata).join("・"), kun = c.kun.map(okuri).join("・");
   q(".back .no").textContent = c.no;
@@ -134,7 +126,7 @@ function paintKana(root, c) {
   q(".kn-code").innerHTML = `<span>${c.code}</span>`;
   // ー and the two kana the 1946 reform retired have no cell in the table to point at
   q(".kn-map").innerHTML = c.map ? gojuon(c) : "";
-  q(".strip").innerHTML = strip(c.paths, c.tx, Math.max(c.paths.length + 2, 6));
+  q(".strip").innerHTML = c.paths.map((_, i) => cell(c.paths, c.tx, i + 1)).join("");
 
   q(".back .no").textContent = c.no;
   q(".kn-c").className = "kn-c" + (two ? " two" : "");

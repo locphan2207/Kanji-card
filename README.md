@@ -144,9 +144,12 @@ triple rather than an SVG transform string so the page can divide the scale back
 the stroke weight — left alone, ァ at 0.42 would be drawn with a pen less than half as
 wide as フ's and all but vanish at card size.
 
-**Short kana get blank cells to write in.** A kanji card's strip has one cell per stroke,
-which for a three-stroke kana would be a strip of three. The extra cells carry the ghost
-and nothing else, which is what the practice squares on a real drill card are for.
+**The strip ends where the strokes do.** A kanji card spreads eight to twenty cells
+across the full card width; a kana card has one to nine, so its cells stay square and the
+box stops after the last stroke rather than stretching. Padding the row out to a fixed
+width instead — the spare cells carrying the ghost alone, as practice squares to trace —
+was tried and read as a rendering failure: on し, five of six cells showed the same
+finished kana and taught nothing, and on half the kana the padding was most of the strip.
 
 **A kana and its counterpart share a card number.** か and カ are both 11. The number is
 the slot in the syllabary, not the position in a deck, so the two scripts read as one
