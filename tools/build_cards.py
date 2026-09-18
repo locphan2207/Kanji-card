@@ -515,6 +515,13 @@ def main():
             fh.write(f"KANJI_DECK({json.dumps(meta['id'])}," + json.dumps(
                 cards, ensure_ascii=False, separators=(",", ":")) + ");\n")
         kb = os.path.getsize(path) / 1024
+        # The chooser prints the run of card numbers a deck holds - 第80-247番 - so
+        # a box can say what it contains without the deck being downloaded. Two
+        # numbers rather than a list because every deck's numbers are contiguous:
+        # a card number is the slot in the syllabary or the jouyou index, and the
+        # decks partition those in order.
+        nos = [c["no"] for c in cards]
+        meta["lo"], meta["hi"] = min(nos), max(nos)
         manifest.append(meta)
         print(f"  {meta['id']:11} {len(cards):4} cards  {kb:7.0f} KB", file=sys.stderr)
 
