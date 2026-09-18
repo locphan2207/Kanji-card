@@ -298,6 +298,20 @@ DECKS = [
     ("kata-toku",   "kata", "カタカナ", "特殊",   "tokushu",  ("special",), 2),
     ("kata-gairai", "kata", "カタカナ", "外来音", "gairaion", ("foreign",), 3),
 ]
+
+# A whole script in one pile, for drilling ひらがな as ひらがな rather than a class of
+# form at a time. A merged deck holds no cards of its own: it names the decks it gathers
+# and the loader deals their files as one pile, so the same cards are not written out a
+# second time under a second id, and 清音 is not downloaded twice by someone who drilled
+# it before picking 全部.
+MERGED = [
+    # id, group, label, romaji, the decks it gathers, in chooser order
+    ("hira-all", "ひらがな", "全部", "zenbu",
+     ("hira-sei", "hira-daku", "hira-yoon", "hira-toku")),
+    ("kata-all", "カタカナ", "全部", "zenbu",
+     ("kata-sei", "kata-daku", "kata-yoon", "kata-toku", "kata-gairai")),
+]
+MERGED_IDS = {deck_id for deck_id, *_ in MERGED}
 SCRIPT_NAME = {"hira": "ひらがな", "kata": "カタカナ"}
 
 
@@ -512,7 +526,8 @@ def make_card(slot, script, no, vg, by_char, tier, kanji_gloss):
 
 
 def build_decks(vg, jmdict, jlpt_readings, word_gloss, kanji_gloss, log=print):
-    """Every kana deck, in chooser order, as (manifest entry, cards) pairs."""
+    """Every kana deck, in chooser order, as (manifest entry, cards) pairs. A merged
+    deck's cards are None: it is dealt from the files its parts write."""
     by_char = build_pool(jmdict, jlpt_readings, word_gloss)
     all_slots = slots()
     out, thin = [], []
@@ -531,4 +546,19 @@ def build_decks(vg, jmdict, jlpt_readings, word_gloss, kanji_gloss, log=print):
                      "kind": "kana", "n": len(cards)}, cards))
     if thin:
         log(f"  {len(thin)} kana have fewer than 6 example words: {''.join(thin)}")
+    return splice_merged(out)
+
+
+def splice_merged(decks):
+    """The merged decks, each spliced in after the decks it gathers, so the chooser offers
+    the whole script at the end of the row it completes. A merged deck carries no cards of
+    its own - it names its parts, and the loader deals their files as one pile in slot
+    order - so あ reads in 全部 exactly as it reads in 清音, rather than having its example
+    words picked over again against a wider syllabary."""
+    out = list(decks)
+    for deck_id, group, label, rom, members in MERGED:
+        at = max(i for i, (meta, _) in enumerate(out) if meta["id"] in members)
+        n = sum(meta["n"] for meta, _ in out if meta["id"] in members)
+        out.insert(at + 1, ({"id": deck_id, "label": label, "rom": rom, "group": group,
+                             "kind": "kana", "n": n, "parts": list(members)}, None))
     return out

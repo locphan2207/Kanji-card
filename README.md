@@ -12,9 +12,10 @@ and the stroke order and nothing else.
 Two kinds of card, because they ask different questions. A **kanji card** asks which
 reading each compound uses; all 2,136 jōyō kanji are here, dealt as five decks by JLPT
 level. A **kana card** asks what one character sounds like; the whole syllabary is here —
-263 slots across both scripts, dealt as nine decks, and not just the 46 you start with
-but the voiced kana, the 拗音 combinations, the sokuon and the long mark, the foreign
-sounds katakana borrowed, and the two kana the 1946 reform retired.
+263 slots across both scripts, dealt as nine decks by class of form — not just the 46 you
+start with but the voiced kana, the 拗音 combinations, the sokuon and the long mark, the
+foreign sounds katakana borrowed, and the two kana the 1946 reform retired — plus a 全部
+deck per script that gathers all of them, for drilling ひらがな as ひらがな.
 
 Pick a deck on load and that deck — and only that deck — is downloaded, then shuffled.
 
@@ -29,7 +30,7 @@ frontend/
   index.html               markup, and a <template> per kind of card
   src/styles.css           everything visual
   src/app.js               deck loading, deck state, painting, and the flight animations
-  data/decks.js            the fourteen decks and their card counts (loaded on every visit)
+  data/decks.js            the sixteen decks and their card counts (loaded on every visit)
   data/decks/hira-sei.js   one file per deck, loaded only when picked
   data/decks/n1.js         …
 tools/
@@ -214,6 +215,8 @@ of mostly stroke geometry; one deck is not:
 | deck                  | cards | gzipped |
 |-----------------------|------:|--------:|
 | kana, each of nine    | 12–46 | 3–11 KB |
+| ひらがな 全部         |   119 |   28 KB |
+| カタカナ 全部         |   154 |   34 KB |
 | N5                    |    79 |   26 KB |
 | N4                    |   168 |   68 KB |
 | N3                    |   377 |  165 KB |
@@ -221,10 +224,14 @@ of mostly stroke geometry; one deck is not:
 | N1                    | 1,144 |  555 KB |
 
 The kana half is 254 KB of the 3MB, so a learner who only wants ひらがな 清音 downloads
-11 KB. Decks load through a `<script>` tag rather than `fetch`, so the app still runs from
-`file://` with no server. Each file calls `KANJI_DECK(id, cards)` — the name the loader
-has had since there were only kanji decks, kept so that adding the kana half left the 3MB
-of generated kanji files byte-for-byte untouched.
+11 KB. The two 全部 decks add nothing to that total: a merged deck has no file of its own
+but names the decks it gathers, and the loader deals their files as one pile — so the
+whole of ひらがな costs its four parts and nothing more, and those parts are already in
+hand for anyone who drilled 清音 before picking 全部. Decks load through a `<script>` tag
+rather than `fetch`, so the app still runs from `file://` with no server. Each file calls
+`KANJI_DECK(id, cards)` — the name the loader has had since there were only kanji decks,
+kept so that adding the kana half left the 3MB of generated kanji files byte-for-byte
+untouched.
 
 If study progress is ever added, that is the thing with a genuine storage question —
 `localStorage` for one device, a database only once progress has to follow a user across
@@ -278,8 +285,9 @@ jōyō kanji it does not cover are placed by school grade.
 - **似た字 is one person's list.** Which kana get mixed up is a real, testable thing, and
   the table here is judgement rather than evidence. Confusion data from a real learner
   corpus would beat it.
-- **The scripts never mix.** Every deck is one script and one class of form, so nothing
-  drills あ against ア, or the whole syllabary at once. Both are small changes to the
-  deck definitions in `build_kana.py`, and the card numbers are already shared so a mixed
-  deck would number consistently.
+- **The scripts never mix.** A 全部 deck gathers one script, so nothing drills あ against
+  ア. That is one more row in `MERGED` in `build_kana.py` naming all nine decks, and the
+  card numbers are already shared — あ and ア are both 1 — so a mixed deck would number
+  consistently, but it would also deal the same syllable twice in two costumes, which is
+  a different exercise and wants thinking about before it is a deck.
 - **Drag to draw.** The pile responds to click only.

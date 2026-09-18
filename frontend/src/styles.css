@@ -308,7 +308,9 @@ body{
    Shown before any deck is loaded. The level buttons are small cards in the same stock
    and shadow as the real one, so the choice reads as picking a deck off the table. */
 .chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
-.chooser-box{max-width:620px; text-align:center}
+/* Wide enough for the longest row - カタカナ's six decks - to stay on one line:
+   74px of name column, then six 88px cards and the gaps between them. */
+.chooser-box{max-width:672px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;

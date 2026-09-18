@@ -321,6 +321,13 @@ function loadDeck(id) {
   });
 }
 
+/* A merged deck has no file of its own. It names the decks it gathers and is dealt from
+   their files, so the whole script can be drilled in one shuffle without a second copy
+   of the same cards on disk — and without fetching 清音 again to meet it inside 全部. */
+const parts = d => d.parts || [d.id];
+const held = d => parts(d).every(id => decks[id]);
+const loadCards = d => Promise.all(parts(d).map(loadDeck)).then(lists => lists.flat());
+
 function deal(cards, meta) {
   CARDS = cards; DECK = meta; KIND = meta.kind;
   card.replaceChildren(faces(KIND));
@@ -345,8 +352,8 @@ function deckButton(d) {
     if (groupList.classList.contains("busy")) return;
     groupList.classList.add("busy");
     b.classList.add("loading");
-    note.textContent = decks[d.id] ? "" : "shuffling the deck…";
-    loadDeck(d.id)
+    note.textContent = held(d) ? "" : "shuffling the deck…";
+    loadCards(d)
       .then(cards => { groupList.classList.remove("busy"); deal(cards, d); })
       .catch(err => {
         groupList.classList.remove("busy");
