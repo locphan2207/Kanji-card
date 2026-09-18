@@ -78,6 +78,19 @@ compounds and get what exists.
 a pixel value from the perspective-corrected reference photo divided by 13.8, i.e. a
 percentage of card width. The card scales as one drawing.
 
+**Row heights are measured too, which is less obvious.** A card back is a list pinned
+inside a box with a top and a bottom, so what the list adds up to has to be known. Left at
+`line-height: normal` it isn't: leading comes out of the font file, Klee One leads taller
+than the system faces it falls back to, and a card that fitted while the web font was
+still loading stopped fitting once it arrived. Four facts and six words at Klee One's
+leading stood taller than the box, and `.face{overflow:hidden}` cut the last word in half
+— む, which carries the most of both, lost its sixth word outright. So the rows state
+their own heights: 4.5cqw for a fact, 3.95cqw for a word, the cells inside leaded tight so
+that baseline alignment is reconciling letters rather than three fonts' ideas of leading.
+The kana back's stack is 48.5cqw of the 52.5cqw it has, on every card, in any font, at any
+width. The kanji back states a floor rather than a height, because a long gloss wraps
+there and a wrapped row has to be allowed to grow.
+
 **The stroke strip is KanjiVG vector paths, not type.** A font can't be taken apart into
 strokes. This is also why the typeface is Klee One throughout — it is a pen/textbook
 design whose letterforms agree with the KanjiVG skeleton. A mincho would disagree with

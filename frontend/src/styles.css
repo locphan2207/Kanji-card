@@ -162,20 +162,30 @@ body{
   border:none; border-top:.16cqw solid var(--rule-soft); margin:0;
 }
 .back .bk-groups{
-  position:absolute; left:6.5cqw; right:6.5cqw; top:16.4cqw; bottom:1.8cqw;
+  position:absolute; left:6.5cqw; right:6.5cqw; top:16cqw; bottom:1.8cqw;
   display:flex; flex-direction:column; gap:.9cqw;
 }
-.bk-head{display:flex; align-items:baseline; gap:2.4cqw; margin-bottom:.2cqw}
+.bk-head{
+  display:flex; align-items:baseline; gap:2.4cqw; line-height:1.15; margin-bottom:.7cqw;
+}
 .bk-head b{
   font-weight:400; font-family:var(--jp); font-size:2.5cqw;
   color:var(--ink-3); letter-spacing:.14em; min-width:9cqw;
 }
 .bk-head span{font-family:var(--jp); font-size:3.9cqw; line-height:1}
+/* Leaded tight, and for a second reason on top of the kana back's: a long gloss wraps, and
+   at the font's own leading a wrapped row cost nearly two full rows of the block. 冗's six
+   compounds wrap five times between them and ran off the bottom of the card; at 1.25 they
+   fit. The row is still free to grow — a gloss that wraps has to be allowed to. */
 .bk-row{
   display:grid; grid-template-columns:21cqw 17cqw 1fr; align-items:baseline;
-  gap:1.5cqw; padding:.42cqw 0 .42cqw 2cqw;
+  gap:1.5cqw; line-height:1.25; padding:.42cqw 0 .42cqw 2cqw;
   border-bottom:.14cqw dotted var(--rule-soft);
 }
+/* A floor rather than a height, because a wrapped gloss has to be able to push past it,
+   and the kanji card's alone: the kana back reuses this row but states its own height,
+   and a floor set here would quietly win over that one. */
+.back:not(.kn) .bk-row{min-height:5cqw}
 .bk-row:last-child{border-bottom:none}
 .bk-row .r{font-family:var(--jp); font-size:3cqw; color:var(--ink)}
 .bk-row .w{font-family:var(--jp); font-size:3cqw; color:var(--ink-2)}
@@ -415,19 +425,28 @@ body{
 }
 .kn-note{
   position:absolute; left:47cqw; right:12cqw; top:4cqw;
-  font-family:var(--latin); font-size:2.15cqw; line-height:1.5; color:var(--ink-2);
+  font-family:var(--latin); font-size:2.15cqw; line-height:3.2cqw; color:var(--ink-2);
 }
 .back.kn hr{top:16.2cqw}
 /* facts then words, in flow rather than pinned: ー has no row in the gojuon table, no
-   源 kanji and no counterpart, so its card should close the gap rather than leave a hole */
+   源 kanji and no counterpart, so its card should close the gap rather than leave a hole.
+   The box itself is pinned top and bottom, though, so every row that goes in it states its
+   own height rather than taking one from the font — see the note on .kn-words. */
 .kn-body{
-  position:absolute; left:6.5cqw; right:6.5cqw; top:17.6cqw; bottom:2cqw;
-  display:flex; flex-direction:column; gap:2.6cqw;
+  position:absolute; left:6.5cqw; right:6.5cqw; top:17.6cqw; bottom:2.4cqw;
+  display:flex; flex-direction:column; gap:2.4cqw;
 }
 .kn-facts{display:flex; flex-direction:column; gap:.35cqw}
 .kn-facts:empty{display:none}
+/* A fact row is 4.5cqw tall, stated, not inferred — see the note on .kn-words. The cells
+   are leaded tight (1.15) so that what baseline alignment has to reconcile is the letters
+   themselves rather than three different fonts' ideas of leading, and the row is then tall
+   enough to hold the deepest of them: a 段 in 3.1cqw kana, a gloss in 2.15cqw latin, or
+   the gojuon thumbnail, which is cut to 3.2cqw so that it sits in the row instead of
+   setting its height. */
 .kn-fact{
   display:grid; grid-template-columns:11cqw auto 1fr; align-items:baseline; gap:1.6cqw;
+  line-height:1.15; height:4.5cqw;
   padding-bottom:.4cqw; border-bottom:.14cqw dotted var(--rule-soft);
 }
 .kn-fact:last-child{border-bottom:none}
@@ -442,7 +461,7 @@ body{
 }
 /* The gojuon table in miniature, one cell inked, printed the way the table is printed:
    a 行 is a column, the columns run right to left, and ん sits off on its own. */
-.kn-fact .map{height:4cqw; width:auto; flex:none; overflow:visible}
+.kn-fact .map{height:3.2cqw; width:auto; flex:none; overflow:visible}
 .kn-fact .map .on{fill:var(--ghost)}
 .kn-fact .map .here{fill:var(--ink)}
 .kn-fact .mmark{font-family:var(--jp); font-size:2.4cqw; color:var(--ink); line-height:1}
@@ -453,11 +472,24 @@ body{
 .kn-fact .sim b{font-family:var(--jp); font-weight:var(--jp-bold); font-size:3.1cqw; color:var(--ink)}
 
 .kn-words:empty{display:none}
+/* A row's height is stated here rather than left to the font. Every other measurement on
+   this card is a share of the card's width, so the whole thing scales as one drawing —
+   line-height:normal was the one thing still coming from the font file, and Klee One leads
+   taller than the system faces it falls back to. Four facts and six words at its leading
+   stood taller than the box they are pinned inside, and .face{overflow:hidden} then cut
+   the last word in half; む, which carries the most of both, lost its sixth word outright.
+   Stated, the whole stack is 48.5cqw of the 52.5cqw the box gives it, on every card, in
+   any font, at any width — and the reading a card is meant to answer cannot fall off it. */
 .kn-wh{
-  font-family:var(--jp); font-size:2.3cqw; letter-spacing:.12em; color:var(--ink-3);
-  margin-bottom:.4cqw;
+  font-family:var(--jp); font-size:2.3cqw; line-height:2.9cqw; letter-spacing:.12em;
+  color:var(--ink-3); margin-bottom:.4cqw;
 }
-.kn-words .bk-row{grid-template-columns:23cqw 18cqw 1fr; padding:.2cqw 0 .2cqw 1.4cqw}
+/* 25.5cqw of word column because エンピツビャクシン is nine kana wide and a kana is a full
+   em: at 23cqw it wrapped, and a wrapped row is the one thing a stated height can't hold. */
+.kn-words .bk-row{
+  grid-template-columns:25.5cqw 18cqw 1fr; line-height:1.15; height:3.95cqw;
+  padding:.2cqw 0 .2cqw 1.4cqw;
+}
 .kn-words .bk-row .r,.kn-words .bk-row .w{font-size:2.7cqw}
 .kn-words .bk-row .w{font-family:var(--latin); letter-spacing:.02em}
 .kn-words .bk-row .g{font-size:2.25cqw}
