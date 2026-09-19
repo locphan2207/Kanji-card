@@ -6,13 +6,24 @@ img{max-width:100%}
 
 :root{
   --desk:#D6D1C4; --desk-2:#C6C0B0;
-  --stock:#FCFAF4; --stock-2:#F5F1E6; --edge:#BDB6A4;
+  /* the neutral stock, before a series is printed on it. --paper and the three
+     -0 greys are the untinted values the spot colour below is mixed into; the names
+     without the suffix are what everything paints with, so a tinted scope only has
+     to restate those. */
+  --paper:#FCFAF4; --paper-2:#F5F1E6;
+  --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE; --ghost-0:#E3DFD5;
+  --stock:var(--paper); --stock-2:var(--paper-2);
+  --edge:var(--edge-0); --rule:var(--rule-0);
+  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0);
   --ink:#16161A; --ink-2:#55524B; --ink-3:#8B857A;
-  --rule:#8E897D; --rule-soft:#C2BCAE; --ghost:#E3DFD5;
   --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
   --ui:#4A453C;
-  /* the deck boxes. A box is cream stock in either theme, so the pattern ink and
-     the seal are stated once; only what the box casts onto the desk changes. */
+  /* the deck boxes. A box is cream stock in either theme, so the seal is stated once
+     and only what the box casts onto the desk changes. The 和柄 ground is the one thing
+     on a box that is not — it is printed in the series' ink further down, and this is
+     the grey it was printed in before there were series, kept as the fallback: where
+     color-mix() is not understood every declaration below falls back to the value it
+     shadows, and this is the one --pat would otherwise have nothing to fall back to. */
   --pat:rgba(22,22,26,.13); --shu:#B2402A; --box-shade:rgba(52,44,30,.42);
   /* One face throughout. Klee One is a pen/textbook design, so its letterforms agree with
      the KanjiVG skeleton the stroke strip draws — a mincho would disagree with it (花's 艹
@@ -25,17 +36,58 @@ img{max-width:100%}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --desk:#1A1714; --desk-2:#0E0C0A;
-    --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+    --paper:#F7F3EA; --paper-2:#EDE8DB; --edge-0:#A79E8A;
     --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
     --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
   }
 }
 :root[data-theme="dark"]{
   --desk:#1A1714; --desk-2:#0E0C0A;
-  --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+  --paper:#F7F3EA; --paper-2:#EDE8DB; --edge-0:#A79E8A;
   --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
   --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
 }
+
+/* ============ the three series, each printed in a second ink ============
+   A category is not a coloured panel behind the cards. It is a spot colour on the same
+   cream stock, which is what a workbook is actually printed in: one plate of black for
+   what you read, one plate of colour for everything around it. So a series states its
+   ink and the stock that ink is printed on, and every coloured thing in the scope is
+   mixed from those two — the 和柄 ground, the hairlines, the tracing ghost in the
+   practice strip. Nothing mixes into --ink or --shu: the words stay black and the 印
+   stays 朱 in all three series, because those are what the card is. Only the stock
+   changes, which is the same thing as saying only the deck changes.
+
+   The rule that keeps it quiet is that colour appears only where a grey already was.
+   There is no new coloured element anywhere below — the ground, the rules and the ghost
+   were neutral greys and are now tinted ones — so the loudest the page can get is the
+   loudest it already was. It is also why the desk keeps out of it: the desk is the room
+   the cards are in, not one of the cards.
+
+   Two values per series and not one, because ink and stock are two different choices.
+   --spot is saturated, because it is mixed into warm greys and a grey eats chroma: a
+   muted ink mixed into a muted grey came out as the grey. --wash is the same hue at
+   the paper's own lightness, so tinting the stock moves its colour without darkening
+   it — mixing --spot into the paper instead made each deck's card as much darker as
+   its ink happened to be, which is a difference nobody chose.
+
+   Each ink is the thing itself, not a slot in a spectrum:
+     ひらがな 藍     — 青海波 has 青 in its name; the wave pattern in indigo.
+     カタカナ 緑青   — verdigris, the patina 鱗 (scale armour) goes to.
+     漢字     丁子   — the 渋紙 a drill workbook is bound in. Warm, and far enough from
+                       the 朱 seal stamped on top of it that the two do not argue. */
+[data-cat]{
+  --stock:color-mix(in srgb,var(--wash) 28%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 36%,var(--paper-2));
+  --edge:color-mix(in srgb,var(--spot) 28%,var(--edge-0));
+  --rule:color-mix(in srgb,var(--spot) 38%,var(--rule-0));
+  --rule-soft:color-mix(in srgb,var(--spot) 32%,var(--rule-soft-0));
+  --ghost:color-mix(in srgb,var(--spot) 24%,var(--ghost-0));
+}
+[data-cat="hiragana"]{--spot:#20537C; --wash:#DCE9F2}
+[data-cat="katakana"]{--spot:#2E6B5A; --wash:#DDEDE2}
+[data-cat="kanji"]   {--spot:#7E5B26; --wash:#F4E9CF}
+
 *{box-sizing:border-box}
 /* A minimum, not a height. The body centres its content, and a centred flex container
    that is shorter than what it holds overflows in both directions — on a phone the
@@ -433,8 +485,16 @@ body{
    pasted over it. The series line stays outside the label, up on the flap, so the
    pattern reads as the box rather than as a border drawn round a card. */
 .bx-pat{position:absolute; inset:0; z-index:0}
+/* Each ground states its own ink strength rather than the three sharing one, because
+   they do not cover the box equally: 青海波 is a field of thin arcs, 鱗 is solid
+   triangles that fill half of it, and 格子 is a grid of single pixels. At one alpha the
+   katakana boxes printed twice as heavy as the kanji ones, which read as the series
+   being louder rather than as the pattern being denser — and the pattern being denser
+   was the only thing true. What is matched here is how dark the box looks, not what
+   the ink is set to. */
 /* 青海波 - two arc layers offset by half a tile, which is how the pattern is laid */
-.bx-pat.g0{
+[data-cat="hiragana"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 26%,transparent);
   --arc:repeating-radial-gradient(circle at 50% 100%,
     transparent 0 calc(var(--ps) * .17), var(--pat) calc(var(--ps) * .17) calc(var(--ps) * .205),
     transparent calc(var(--ps) * .205) calc(var(--ps) * .5));
@@ -443,14 +503,16 @@ body{
   background-position:0 0, calc(var(--ps) / 2) calc(var(--ps) / 4);
 }
 /* 鱗 */
-.bx-pat.g1{
+[data-cat="katakana"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 13%,transparent);
   background-image:
     linear-gradient(135deg,var(--pat) 25%,transparent 25%),
     linear-gradient(225deg,var(--pat) 25%,transparent 25%);
   background-size:var(--ps) var(--ps);
 }
 /* 格子 - which on the kanji boxes reads as 方眼紙, the paper the practice is done on */
-.bx-pat.g2{
+[data-cat="kanji"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 26%,transparent);
   background-image:
     repeating-linear-gradient(to right,var(--pat) 0 1px,transparent 1px var(--ps)),
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
@@ -459,12 +521,15 @@ body{
   position:absolute; left:8.33cqw; top:6.8cqw; z-index:2;
   font-size:5.7cqw; letter-spacing:.16em; color:var(--ink-2);
 }
+/* The label is a slip of paper pasted onto the box, not part of the box, so it is
+   printed on the plain stock while the ground around it carries the series' tint. That
+   is also what keeps every deck name black on cream: the colour never gets under type. */
 .bx-plate{
   position:absolute; left:9.85cqw; right:9.85cqw; top:33%; bottom:6.06cqw; z-index:2;
-  background:linear-gradient(180deg,var(--stock),var(--stock-2));
+  background:linear-gradient(180deg,var(--paper),var(--paper-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */
-  box-shadow:inset 0 0 0 1.14cqw var(--stock), inset 0 0 0 1.9cqw var(--rule-soft),
+  box-shadow:inset 0 0 0 1.14cqw var(--paper), inset 0 0 0 1.9cqw var(--rule-soft),
              0 1px 3px rgba(40,32,18,.24);
 }
 .bx-nm{

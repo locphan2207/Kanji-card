@@ -303,14 +303,15 @@ addEventListener("keydown", e => {
 const chooser = $("chooser"), groupList = $("groupList"), note = $("chooserNote");
 const table = $("table"), controls = $("controls");
 const decks = {}, waiting = {};
-/* In first-appearance order, which is the order the chooser lays the rows out and
-   the order the three 和柄 grounds are numbered in. */
-const GROUPS = [...new Set(DECKS.map(d => d.group))];
 /* The name of each category in English. It is a label, not deck data — nothing on a
    card changes — so it lives here rather than in the generated manifest. Only the
    category is named: 清音 and 濁音 are classes of kana with no English name that is
    shorter than a sentence, and the box already prints their romaji. */
 const GROUP_EN = { "ひらがな": "Hiragana", "カタカナ": "Katakana", "漢字": "Kanji" };
+/* Which of the three series a group is, as one hook for the stylesheet. Both things
+   that vary by category hang off it — the 和柄 ground printed on the box and the spot
+   ink the whole scope is mixed from — because they are the same fact said twice. */
+const GROUP_CAT = { "ひらがな": "hiragana", "カタカナ": "katakana", "漢字": "kanji" };
 
 window.KANJI_DECK = (id, cards) => {
   decks[id] = cards;
@@ -347,6 +348,9 @@ function deal(cards, meta) {
   paint(card, CARDS[current]);
   renderPiles();
   $("relevel").textContent = `${meta.group} ${meta.label} · change deck`;
+  // On <body> rather than on .table: the card in flight is appended to the body, so a
+  // scope any tighter than this would have it change stock halfway to the pile.
+  document.body.dataset.cat = GROUP_CAT[meta.group] || "";
   chooser.hidden = true; table.hidden = false; controls.hidden = false;
   card.focus();
 }
@@ -385,7 +389,7 @@ function deckBox(d, vol) {
     `numbers ${d.lo} to ${d.hi}`);
   b.innerHTML =
     `<span class="bx-lid">
-       <span class="bx-pat g${GROUPS.indexOf(d.group)}"></span>
+       <span class="bx-pat"></span>
        <span class="bx-series">${d.group}ドリル</span>
        <span class="bx-plate">
          <span class="${nm}">${d.label}</span>` +
@@ -421,6 +425,7 @@ function deckBox(d, vol) {
 
 function renderChooser() {
   chooser.hidden = false; table.hidden = true; controls.hidden = true;
+  delete document.body.dataset.cat;   // each row prints its own series from here on
   note.textContent = "";
   groupList.innerHTML = "";
   const groups = [];
@@ -432,6 +437,7 @@ function renderChooser() {
   groups.forEach(g => {
     const row = document.createElement("div");
     row.className = "group";
+    row.dataset.cat = GROUP_CAT[g.name] || "";
     const name = document.createElement("div");
     name.className = "group-name";
     name.innerHTML = `<span>${g.name}</span>` +

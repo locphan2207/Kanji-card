@@ -141,9 +141,48 @@ deck has no cards of its own to measure, so it takes the span of its parts — `
 for ひらがな 全部, which is the only line on the box that says outright that it holds
 everything the four beside it do.
 
-The 印 stamped with the volume numeral is the only colour anywhere in the app. 全部 is
-stamped 全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's
-omnibus is not volume five.
+The 印 stamped with the volume numeral is 朱 on every box in every series. 全部 is stamped
+全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's omnibus is
+not volume five.
+
+**A series is a second ink, not a coloured panel.** Each of the three categories has its
+own colour, on its boxes and on its cards — 藍 for ひらがな, because 青海波 has 青 in its
+name; 緑青 for カタカナ, the patina 鱗 (scale armour) goes to; 丁子 for 漢字, the 渋紙 a
+drill workbook is bound in. But the colour is not a field behind anything. A workbook is
+printed in two plates, one of black for what you read and one of colour for everything
+around it, and that is what this is: the 和柄 ground, the hairlines, the tracing ghost in
+the practice strip. The words stay black and the 印 stays 朱 in all three, because those
+are what the card is; only the stock it is printed on changes, which is another way of
+saying only the deck changes.
+
+The rule that keeps it quiet is that **colour appears only where a grey already was.**
+There is no new coloured element anywhere — the ground, the rules and the ghost were
+neutral greys and are tinted ones now — so the loudest the page can get is the loudest it
+already was. The deck label is the exception that proves it: it is a slip of paper pasted
+onto the box, so it stays on the plain stock, and no deck name has colour under it. The
+desk keeps out of it too, because the desk is the room the cards are in, not one of them.
+
+A series states two values and not one, `--spot` and `--wash`, because ink and stock are
+two different choices. The ink is saturated, since it is mixed into warm greys and a grey
+eats chroma — a muted ink mixed into a muted grey came out as the grey, which was the
+first attempt and looked like nothing had been done. The wash is the same hue at the
+paper's own lightness, so tinting the stock moves its colour without darkening it; mixing
+the ink into the paper instead made each deck's card as much darker as its ink happened
+to be, which is a difference nobody chose. Everything else is mixed from those two, so a
+series is two lines of CSS and the rest follows.
+
+**The three grounds do not take the same amount of ink.** 青海波 is a field of thin arcs,
+鱗 is solid triangles that fill half the box, and 格子 is a grid of single pixels. Given
+one alpha, the katakana boxes printed twice as heavy as the kanji ones, which read as that
+series being louder rather than as that pattern being denser — and only the second was
+true. So each ground states its own strength: what is matched across the three is how dark
+the box looks, not what the ink is set to.
+
+The colour earns most at phone width, which is not where it was designed. On a desktop the
+three rows are stacked with their names beside them and you can see all sixteen boxes at
+once. On a phone the name column is gone, the rows are two boxes wide and a screen apart,
+and the thing that tells you which series you are scrolling through is that the boxes went
+from blue to green.
 
 **A box is measured against its own width, like the card.** Every position printed on a
 box is in `cqw` against the slot — 132px wide is 100cqw, so 11px of margin is 8.33cqw and
