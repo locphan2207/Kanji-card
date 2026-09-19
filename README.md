@@ -117,6 +117,34 @@ building block and so has no siblings — to the kanji built out of it. 日 has 
 its own, but 明 and 早 are made from it. A shared component that also carries a shared
 on-reading is a phonetic series, which is the pairing worth showing, so it scores highest.
 
+**A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
+as a small card with its name on it, which said nothing a line of text could not. A deck
+of cards comes in a box, so it is drawn as one. Two details do the whole job of saying
+"box" rather than "card": the tuck flap folded over the top — tinted, with a hairline and
+a sliver of cast shadow at its edge — and the sliver of the box's own front face along the
+bottom. A thumb notch was tried and taken off: it is the right detail on a real box and it
+took a bite out of every label. Nothing is tilted and nothing is a 3D context, so a hover
+is one `translateY` on the compositor and no script runs at all.
+
+**What is printed on a box is the deck's own data.** A 和柄 ground says which of the three
+series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for
+漢字, which on the kanji boxes reads as the 方眼紙 the practice is done on — and its scale
+steps through the volumes, so 拗音 is not the same object as 清音. Over it sits the drill
+workbook's block of type: the deck name, the romaji, and along the foot `第80–247番` and
+`全168枚`. The range is real. Every deck's card numbers are contiguous, because a card
+number is the slot in the syllabary or the jōyō index and the decks partition those in
+order, so `build_cards.py` writes each deck's `lo` and `hi` into the manifest and a box can
+say what it holds without the deck being downloaded. The five kanji boxes tile 1–2136 with
+no gaps; か and カ share a card number, so ひらがな清音 and カタカナ清音 print the same range,
+which is the two scripts being one system seen twice, printed on the packaging. A merged
+deck has no cards of its own to measure, so it takes the span of its parts — `第1–119番`
+for ひらがな 全部, which is the only line on the box that says outright that it holds
+everything the four beside it do.
+
+The 印 stamped with the volume numeral is the only colour anywhere in the app. 全部 is
+stamped 全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's
+omnibus is not volume five.
+
 ## The kana card
 
 A kanji card and a kana card are the same piece of card stock — same stock, same shadow,

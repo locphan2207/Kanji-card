@@ -11,6 +11,9 @@ img{max-width:100%}
   --rule:#8E897D; --rule-soft:#C2BCAE; --ghost:#E3DFD5;
   --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
   --ui:#4A453C;
+  /* the deck boxes. A box is cream stock in either theme, so the pattern ink and
+     the seal are stated once; only what the box casts onto the desk changes. */
+  --pat:rgba(22,22,26,.13); --shu:#B2402A; --box-shade:rgba(52,44,30,.42);
   /* One face throughout. Klee One is a pen/textbook design, so its letterforms agree with
      the KanjiVG skeleton the stroke strip draws — a mincho would disagree with it (花's 艹
      is one connected bar in print, separate strokes by hand). --glyph-edge adds back the
@@ -24,14 +27,14 @@ img{max-width:100%}
     --desk:#1A1714; --desk-2:#0E0C0A;
     --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
     --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
-    --ui:#BCB4A6;
+    --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
   }
 }
 :root[data-theme="dark"]{
   --desk:#1A1714; --desk-2:#0E0C0A;
   --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
   --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
-  --ui:#BCB4A6;
+  --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -305,12 +308,12 @@ body{
 .fbtn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 .caption{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ui); opacity:.5}
 /* ============ deck chooser ============
-   Shown before any deck is loaded. The level buttons are small cards in the same stock
-   and shadow as the real one, so the choice reads as picking a deck off the table. */
+   Shown before any deck is loaded. A deck is a box of cards, so it is drawn as one:
+   every box the same size, differing only in what is printed on the lid. */
 .chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
-/* Wide enough for the longest row - カタカナ's six decks - to stay on one line:
-   74px of name column, then six 88px cards and the gaps between them. */
-.chooser-box{max-width:672px; text-align:center}
+/* Wide enough for the longest row — カタカナ's six decks — to stay on one line:
+   74px of name column, then six 132px boxes and the gaps between them. */
+.chooser-box{max-width:960px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;
@@ -324,41 +327,146 @@ body{
   opacity:.65; margin:0 auto 26px; max-width:40ch;
 }
 .groups{display:flex; flex-direction:column; gap:15px}
-.group{display:grid; grid-template-columns:74px 1fr; align-items:center; gap:14px}
+.group{display:grid; grid-template-columns:74px 1fr; align-items:start; gap:14px}
 .group-name{
   font-family:var(--jp); font-size:12px; letter-spacing:.18em; text-align:right;
-  color:var(--ui); opacity:.6;
+  color:var(--ui); opacity:.6; padding-top:42px;
 }
-.levels{display:flex; flex-wrap:wrap; gap:10px}
-.level{
-  width:88px; aspect-ratio:1.38; flex:0 0 auto; cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
-  background:linear-gradient(160deg,var(--stock),var(--stock-2));
-  border:1px solid var(--edge); border-radius:3px; box-shadow:var(--shadow);
-  transition:transform .13s ease, box-shadow .13s ease;
+.levels{display:flex; flex-wrap:wrap; gap:26px 16px}
+
+/* ---- the box ----
+   Two details do the work of saying "box" rather than "card": the tuck flap folded
+   over the top, and the sliver of the box's own front face along the bottom. The
+   box lies flat and square so nothing printed on it is foreshortened, and the whole
+   object lifts on hover, leaving its shadow behind.
+
+   The slot holds the shadow, because the shadow is what the box lifts away from.
+   Nothing here is a 3D context - no perspective, no rotation, no compositing layer
+   per box - so a hover is one transform on the compositor and no script at all. */
+.slot{
+  position:relative; width:132px; height:107px; flex:0 0 auto;
+  contain:layout style;
 }
-.level .lv{
-  font-family:var(--latin); font-size:19px; font-weight:500; letter-spacing:.08em;
-  color:var(--ink);
+.box{
+  position:absolute; left:0; top:0; width:132px; height:105px;
+  background:none; border:none; padding:0; cursor:pointer; color:inherit;
+  transform:translateY(0); transition:transform .17s cubic-bezier(.2,.86,.3,1);
 }
-.level .lv-rom{
-  font-family:var(--latin); font-size:8.5px; letter-spacing:.09em; color:var(--ink-3);
-  margin-top:-2px;
+.slot:hover .box{transform:translateY(-9px)}
+.box:active{transform:translateY(-2px); transition-duration:.07s}
+.box:focus-visible{outline:none}
+.box:focus-visible .bx-lid{outline:2px solid var(--ink); outline-offset:3px}
+
+.bx-lid{
+  position:absolute; left:0; top:0; width:100%; height:100px;
+  border-radius:3px 3px 2px 2px; overflow:hidden;
+  background:linear-gradient(157deg,var(--stock),var(--stock-2));
+  border:1px solid var(--edge);
+  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6);
+  font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
+  transition:transform .32s cubic-bezier(.4,0,.6,1), opacity .32s;
 }
-.level .lv-n{
-  font-family:var(--latin); font-size:9px; letter-spacing:.13em; text-transform:uppercase;
-  color:var(--ink-3);
+/* the tuck flap: a second thickness of card folded over the top. Tinting it and
+   giving its edge a hairline plus a sliver of cast shadow is the whole trick, and
+   unlike a thumb notch it crosses the printing the way a real flap does rather
+   than cutting a hole in it. */
+.bx-flap{
+  position:absolute; left:0; right:0; top:0; height:23%; z-index:3; pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.014) 66%,transparent);
+  border-bottom:1px solid var(--rule-soft);
+  box-shadow:0 1px 0 rgba(255,255,255,.72), 0 4px 5px -4px rgba(40,32,18,.55);
 }
-.level:hover{transform:translateY(-3px)}
-.level:active{transform:translateY(-1px)}
-.level:focus-visible{outline:2px solid var(--ink); outline-offset:4px}
-.groups.busy .level{cursor:progress}
-.groups.busy .level:not(.loading){opacity:.45}
-.level.loading{animation:deal .9s ease-in-out infinite}
-@keyframes deal{50%{transform:translateY(-5px)}}
+/* the box's own front face: the one place its depth shows. Every box is the same
+   size, so this is the same sliver on all fourteen. */
+.bx-depth{
+  position:absolute; left:2px; right:2px; top:100px; height:5px;
+  border:1px solid var(--edge); border-top:none; border-radius:0 0 3px 3px;
+  background-color:var(--stock);
+  background-image:
+    linear-gradient(to bottom,rgba(0,0,0,.24),rgba(0,0,0,.03) 40%,rgba(0,0,0,.26)),
+    repeating-linear-gradient(to bottom,transparent 0 1.5px,rgba(60,50,30,.3) 1.5px 2.5px);
+}
+/* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
+   it moves, a gradient is painted once and then only scaled and faded. */
+.bx-shade{
+  position:absolute; left:-8%; width:116%; height:24px; bottom:2px;
+  background:radial-gradient(50% 50% at 50% 50%,var(--box-shade),transparent 70%);
+  transform:scaleX(.9) scaleY(.6); opacity:.9; transform-origin:50% 35%;
+  transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .17s;
+}
+.slot:hover .bx-shade{transform:scaleX(1.08) scaleY(1.34); opacity:.55}
+
+/* ---- what is printed on the lid ----
+   A 和柄 ground, one per script, and the drill workbook's block of type on a label
+   pasted over it. The series line stays outside the label, up on the flap, so the
+   pattern reads as the box rather than as a border drawn round a card. */
+.bx-pat{position:absolute; inset:0; z-index:0}
+/* 青海波 - two arc layers offset by half a tile, which is how the pattern is laid */
+.bx-pat.g0{
+  --arc:repeating-radial-gradient(circle at 50% 100%,
+    transparent 0 calc(var(--ps) * .17), var(--pat) calc(var(--ps) * .17) calc(var(--ps) * .205),
+    transparent calc(var(--ps) * .205) calc(var(--ps) * .5));
+  background-image:var(--arc),var(--arc);
+  background-size:var(--ps) calc(var(--ps) * .5);
+  background-position:0 0, calc(var(--ps) / 2) calc(var(--ps) / 4);
+}
+/* 鱗 */
+.bx-pat.g1{
+  background-image:
+    linear-gradient(135deg,var(--pat) 25%,transparent 25%),
+    linear-gradient(225deg,var(--pat) 25%,transparent 25%);
+  background-size:var(--ps) var(--ps);
+}
+/* 格子 - which on the kanji boxes reads as 方眼紙, the paper the practice is done on */
+.bx-pat.g2{
+  background-image:
+    repeating-linear-gradient(to right,var(--pat) 0 1px,transparent 1px var(--ps)),
+    repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
+}
+.bx-series{
+  position:absolute; left:11px; top:9px; z-index:2;
+  font-size:7.5px; letter-spacing:.16em; color:var(--ink-2);
+}
+.bx-plate{
+  position:absolute; left:13px; right:13px; top:33%; bottom:8px; z-index:2;
+  background:linear-gradient(180deg,var(--stock),var(--stock-2));
+  border:1px solid var(--rule);
+  /* the workbook cover's double rule, and the lift of a label pasted on */
+  box-shadow:inset 0 0 0 1.5px var(--stock), inset 0 0 0 2.5px var(--rule-soft),
+             0 1px 3px rgba(40,32,18,.24);
+}
+.bx-nm{
+  position:absolute; left:0; right:0; top:15%; text-align:center;
+  font-size:19px; font-weight:var(--jp-bold); letter-spacing:.07em;
+}
+.bx-nm.lng{font-size:15px}
+.bx-nm.solo{top:24%}          /* a kanji box prints no romaji, so its name centres */
+.bx-rom{
+  position:absolute; left:0; right:0; top:55%; text-align:center;
+  font-family:var(--latin); font-size:6.5px; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.bx-foot{
+  position:absolute; left:8px; right:8px; bottom:4px;
+  display:flex; justify-content:space-between; align-items:baseline;
+  border-top:1px solid var(--rule-soft); padding-top:3.5px;
+  font-size:7px; letter-spacing:.03em; color:var(--ink-2);
+}
+/* 印 - the volume numeral, stamped. The only colour in the whole app, and only here. */
+.bx-seal{
+  position:absolute; right:7px; top:7px; z-index:5;
+  width:15px; height:15px; display:grid; place-items:center;
+  border:1.2px solid var(--shu); border-radius:1.5px;
+  color:var(--shu); font-size:9.5px; line-height:1; opacity:.92;
+}
+
+.groups.busy .box{cursor:progress}
+.groups.busy .slot:not(.loading) .box{opacity:.45}
+/* picking a deck takes the lid off it */
+.slot.loading .bx-lid{transform:translateY(-118%) rotate(-3deg); opacity:0}
 @media (max-width:560px){
-  .group{grid-template-columns:1fr; gap:5px; justify-items:start}
-  .group-name{text-align:left}
+  .group{grid-template-columns:1fr; gap:7px; justify-items:start}
+  .group-name{text-align:left; padding-top:0}
 }
 .chooser-note{
   font-family:var(--latin); font-size:10px; letter-spacing:.14em; text-transform:uppercase;

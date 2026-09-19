@@ -511,6 +511,11 @@ def main():
     for meta, cards in written:
         manifest.append(meta)
         if cards is None:          # a merged deck is dealt from the files its parts write
+            # and spans everything they hold. Its parts are written before it, so their
+            # ranges are already on the manifest by the time it is reached.
+            spans = [m for m in manifest if m["id"] in meta["parts"]]
+            meta["lo"] = min(m["lo"] for m in spans)
+            meta["hi"] = max(m["hi"] for m in spans)
             print(f"  {meta['id']:11} {meta['n']:4} cards  {'merged':>7}", file=sys.stderr)
             continue
         path = os.path.join(OUT, "decks", f"{meta['id']}.js")
@@ -519,6 +524,13 @@ def main():
             fh.write(f"KANJI_DECK({json.dumps(meta['id'])}," + json.dumps(
                 cards, ensure_ascii=False, separators=(",", ":")) + ");\n")
         kb = os.path.getsize(path) / 1024
+        # The chooser prints the run of card numbers a deck holds - 第80-247番 - so
+        # a box can say what it contains without the deck being downloaded. Two
+        # numbers rather than a list because every deck's numbers are contiguous:
+        # a card number is the slot in the syllabary or the jouyou index, and the
+        # decks partition those in order.
+        nos = [c["no"] for c in cards]
+        meta["lo"], meta["hi"] = min(nos), max(nos)
         print(f"  {meta['id']:11} {len(cards):4} cards  {kb:7.0f} KB", file=sys.stderr)
 
     with open(os.path.join(OUT, "decks.js"), "w", encoding="utf-8") as fh:

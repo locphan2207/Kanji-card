@@ -7,6 +7,7 @@ const kata = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(
 const okuri = s => s.replace(/^-/, "〜").replace(/\.(.+)$/, "（$1）");
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) {
   const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const settle = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 let CARDS = [], DECK = null, KIND = "kanji";
 let deck = [], used = [], current = -1, busy = false, flipped = false;
@@ -302,6 +303,9 @@ addEventListener("keydown", e => {
 const chooser = $("chooser"), groupList = $("groupList"), note = $("chooserNote");
 const table = $("table"), controls = $("controls");
 const decks = {}, waiting = {};
+/* In first-appearance order, which is the order the chooser lays the rows out and
+   the order the three 和柄 grounds are numbered in. */
+const GROUPS = [...new Set(DECKS.map(d => d.group))];
 
 window.KANJI_DECK = (id, cards) => {
   decks[id] = cards;
@@ -342,26 +346,69 @@ function deal(cards, meta) {
   card.focus();
 }
 
-function deckButton(d) {
+/* A deck is a box of cards, so it is drawn as one. Every box is the same size and
+   only the printing differs: a 和柄 ground per script over which the drill workbook's
+   block of type sits on a pasted label. The ground says which of the three series a
+   box belongs to from across the room; the label says everything else.
+
+   Nothing on the box is invented. 第80–247番 is the run of card numbers the deck
+   actually holds, and because the three groups each tile their numbering with no
+   gaps, the boxes in a row read as volumes of one set — か and カ share a card
+   number, so ひらがな清音 and カタカナ清音 print the same range, which is the point. */
+const VOLUMES = "一二三四五六七八九";
+
+function deckBox(d, vol) {
+  const slot = document.createElement("div");
+  slot.className = "slot";
+
+  // a three-character name sets smaller, and a kanji box prints no romaji so its
+  // name centres in the plate instead of sitting above one
+  const nm = "bx-nm" + (d.label.length > 2 ? " lng" : "") + (d.rom ? "" : " solo");
+  // 全部 gathers the volumes beside it rather than being the next one, so it is
+  // stamped 全 — a boxed set's omnibus is not volume five.
+  const seal = d.parts ? "全" : VOLUMES[vol] || vol + 1;
+
   const b = document.createElement("button");
-  b.className = "level";
-  b.innerHTML = `<span class="lv">${d.label}</span>` +
-    (d.rom ? `<span class="lv-rom">${d.rom}</span>` : "") +
-    `<span class="lv-n">${d.n} cards</span>`;
+  b.className = "box";
+  // the pattern's scale steps through a series, so 拗音 is not the same object as 清音
+  b.style.setProperty("--ps", `${11 + vol * 3.5}px`);
+  b.setAttribute("aria-label",
+    `${d.group} ${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
+    `numbers ${d.lo} to ${d.hi}`);
+  b.innerHTML =
+    `<span class="bx-lid">
+       <span class="bx-pat g${GROUPS.indexOf(d.group)}"></span>
+       <span class="bx-series">${d.group}ドリル</span>
+       <span class="bx-plate">
+         <span class="${nm}">${d.label}</span>` +
+         (d.rom ? `<span class="bx-rom">${d.rom}</span>` : "") +
+        `<span class="bx-foot"><span>第${d.lo}–${d.hi}番</span><span>全${d.n}枚</span></span>
+       </span>
+       <span class="bx-flap"></span>
+       <span class="bx-seal">${seal}</span>
+     </span>
+     <span class="bx-depth"></span>`;
+
   b.addEventListener("click", () => {
     if (groupList.classList.contains("busy")) return;
     groupList.classList.add("busy");
-    b.classList.add("loading");
+    slot.classList.add("loading");     // the lid comes off
     note.textContent = held(d) ? "" : "shuffling the deck…";
-    loadCards(d)
-      .then(cards => { groupList.classList.remove("busy"); deal(cards, d); })
+    // A deck already in hand resolves in the same tick, which would cut the lid off
+    // mid-flight. Hold the table back until the box has actually opened.
+    Promise.all([loadCards(d), settle(reduced ? 0 : 240)])
+      .then(([cards]) => { groupList.classList.remove("busy"); deal(cards, d); })
       .catch(err => {
         groupList.classList.remove("busy");
-        b.classList.remove("loading");
+        slot.classList.remove("loading");
         note.textContent = `${err.message}. Check that frontend/data/decks/ was built.`;
       });
   });
-  return b;
+
+  const shade = document.createElement("span");
+  shade.className = "bx-shade";
+  slot.append(shade, b);
+  return slot;
 }
 
 function renderChooser() {
@@ -382,7 +429,8 @@ function renderChooser() {
     name.textContent = g.name;
     const list = document.createElement("div");
     list.className = "levels";
-    g.decks.forEach(d => list.appendChild(deckButton(d)));
+    // the index within a group is the volume number, and the step of its pattern
+    g.decks.forEach((d, vol) => list.appendChild(deckBox(d, vol)));
     row.append(name, list);
     groupList.appendChild(row);
   });
