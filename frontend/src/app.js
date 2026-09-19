@@ -306,6 +306,11 @@ const decks = {}, waiting = {};
 /* In first-appearance order, which is the order the chooser lays the rows out and
    the order the three 和柄 grounds are numbered in. */
 const GROUPS = [...new Set(DECKS.map(d => d.group))];
+/* The name of each category in English. It is a label, not deck data — nothing on a
+   card changes — so it lives here rather than in the generated manifest. Only the
+   category is named: 清音 and 濁音 are classes of kana with no English name that is
+   shorter than a sentence, and the box already prints their romaji. */
+const GROUP_EN = { "ひらがな": "Hiragana", "カタカナ": "Katakana", "漢字": "Kanji" };
 
 window.KANJI_DECK = (id, cards) => {
   decks[id] = cards;
@@ -370,10 +375,13 @@ function deckBox(d, vol) {
 
   const b = document.createElement("button");
   b.className = "box";
-  // the pattern's scale steps through a series, so 拗音 is not the same object as 清音
-  b.style.setProperty("--ps", `${11 + vol * 3.5}px`);
+  // The pattern's scale steps through a series, so 拗音 is not the same object as 清音.
+  // In cqw rather than px, like everything else printed on a box: the ground is part of
+  // the drawing, and a wider box on a phone gets a larger tile, not more tiles.
+  b.style.setProperty("--ps", `${(8.33 + vol * 2.65).toFixed(2)}cqw`);
   b.setAttribute("aria-label",
-    `${d.group} ${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
+    `${d.group}${GROUP_EN[d.group] ? ` ${GROUP_EN[d.group]}` : ""} ` +
+    `${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
     `numbers ${d.lo} to ${d.hi}`);
   b.innerHTML =
     `<span class="bx-lid">
@@ -426,7 +434,8 @@ function renderChooser() {
     row.className = "group";
     const name = document.createElement("div");
     name.className = "group-name";
-    name.textContent = g.name;
+    name.innerHTML = `<span>${g.name}</span>` +
+      (GROUP_EN[g.name] ? `<span class="en">${GROUP_EN[g.name]}</span>` : "");
     const list = document.createElement("div");
     list.className = "levels";
     // the index within a group is the volume number, and the step of its pattern
