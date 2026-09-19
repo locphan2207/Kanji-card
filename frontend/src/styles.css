@@ -37,11 +37,19 @@ img{max-width:100%}
   --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+/* A minimum, not a height. The body centres its content, and a centred flex container
+   that is shorter than what it holds overflows in both directions — on a phone the
+   chooser is twice the height of the screen, and a fixed height put its title and its
+   first row above the top of the document where no scroll could reach them. */
+html{height:100%}
+body{min-height:100%}
 html{overflow-x:clip}
 body{overflow-x:clip}
 body{
-  margin:0; padding-block:36px 40px; padding-left:16px; padding-right:16px;
+  margin:0; padding-block:36px 40px;
+  /* viewport-fit=cover is declared, so a landscape notch is this page's problem */
+  padding-left:max(16px,env(safe-area-inset-left));
+  padding-right:max(16px,env(safe-area-inset-right));
   background:linear-gradient(168deg,var(--desk),var(--desk-2)); background-attachment:fixed;
   color:var(--ui); font-family:var(--latin);
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px;
@@ -310,10 +318,13 @@ body{
 /* ============ deck chooser ============
    Shown before any deck is loaded. A deck is a box of cards, so it is drawn as one:
    every box the same size, differing only in what is printed on the lid. */
-.chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
+.chooser{display:flex; align-items:center; justify-content:center; padding:10px 0; width:100%}
 /* Wide enough for the longest row — カタカナ's six decks — to stay on one line:
-   74px of name column, then six 132px boxes and the gaps between them. */
-.chooser-box{max-width:960px; text-align:center}
+   74px of name column, then six 132px boxes and the gaps between them. Stated as a
+   maximum over a full width rather than left to shrink-to-fit: at phone width the boxes
+   divide the row between them, so what the row would be at its widest no longer says
+   anything about how wide the screen is. */
+.chooser-box{width:100%; max-width:960px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;
@@ -329,8 +340,15 @@ body{
 .groups{display:flex; flex-direction:column; gap:15px}
 .group{display:grid; grid-template-columns:74px 1fr; align-items:start; gap:14px}
 .group-name{
+  display:flex; flex-direction:column; align-items:flex-end; gap:4px;
   font-family:var(--jp); font-size:12px; letter-spacing:.18em; text-align:right;
-  color:var(--ui); opacity:.6; padding-top:42px;
+  color:var(--ui); opacity:.6; padding-top:40px;
+}
+/* The category in English, set the way the romaji on a box is set — the script's name
+   is the one word on this screen a reader who cannot yet read the screen needs. */
+.group-name .en{
+  font-family:var(--latin); font-size:8.5px; letter-spacing:.2em; text-transform:uppercase;
+  opacity:.8;
 }
 .levels{display:flex; flex-wrap:wrap; gap:26px 16px}
 
@@ -342,24 +360,36 @@ body{
 
    The slot holds the shadow, because the shadow is what the box lifts away from.
    Nothing here is a 3D context - no perspective, no rotation, no compositing layer
-   per box - so a hover is one transform on the compositor and no script at all. */
+   per box - so a hover is one transform on the compositor and no script at all.
+
+   Every measurement printed on a box below is in cqw against the slot, the way the card
+   is measured against its own width: 132px wide is 100cqw, so 11px of margin is 8.33cqw
+   and the whole box is one drawing that can be printed at any size. It is 132px on a
+   desktop, where six fit a row, and half the screen on a phone, where two do - and the
+   second is the first, larger, rather than the same small box with the type left behind
+   at the size it was set for a mouse. */
 .slot{
-  position:relative; width:132px; height:107px; flex:0 0 auto;
-  contain:layout style;
+  position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
+  container-type:inline-size;
 }
 .box{
-  position:absolute; left:0; top:0; width:132px; height:105px;
+  position:absolute; left:0; top:0; width:100%; height:79.55cqw;
   background:none; border:none; padding:0; cursor:pointer; color:inherit;
+  -webkit-tap-highlight-color:transparent;
   transform:translateY(0); transition:transform .17s cubic-bezier(.2,.86,.3,1);
 }
-.slot:hover .box{transform:translateY(-9px)}
-.box:active{transform:translateY(-2px); transition-duration:.07s}
+/* A finger cannot hover. On a touchscreen :hover sticks to whatever was tapped last,
+   so the lift is a pointer's feedback and the press below is everyone's. */
+@media (hover:hover){
+  .slot:hover .box{transform:translateY(-6.82cqw)}
+}
+.box:active{transform:translateY(-1.5cqw); transition-duration:.07s}
 .box:focus-visible{outline:none}
 .box:focus-visible .bx-lid{outline:2px solid var(--ink); outline-offset:3px}
 
 .bx-lid{
-  position:absolute; left:0; top:0; width:100%; height:100px;
-  border-radius:3px 3px 2px 2px; overflow:hidden;
+  position:absolute; left:0; top:0; width:100%; height:75.76cqw;
+  border-radius:2.3cqw 2.3cqw 1.5cqw 1.5cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
   border:1px solid var(--edge);
   box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6);
@@ -379,8 +409,8 @@ body{
 /* the box's own front face: the one place its depth shows. Every box is the same
    size, so this is the same sliver on all fourteen. */
 .bx-depth{
-  position:absolute; left:2px; right:2px; top:100px; height:5px;
-  border:1px solid var(--edge); border-top:none; border-radius:0 0 3px 3px;
+  position:absolute; left:1.5cqw; right:1.5cqw; top:75.76cqw; height:3.8cqw;
+  border:1px solid var(--edge); border-top:none; border-radius:0 0 2.3cqw 2.3cqw;
   background-color:var(--stock);
   background-image:
     linear-gradient(to bottom,rgba(0,0,0,.24),rgba(0,0,0,.03) 40%,rgba(0,0,0,.26)),
@@ -389,12 +419,14 @@ body{
 /* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
    it moves, a gradient is painted once and then only scaled and faded. */
 .bx-shade{
-  position:absolute; left:-8%; width:116%; height:24px; bottom:2px;
+  position:absolute; left:-8%; width:116%; height:18.2cqw; bottom:1.5cqw;
   background:radial-gradient(50% 50% at 50% 50%,var(--box-shade),transparent 70%);
   transform:scaleX(.9) scaleY(.6); opacity:.9; transform-origin:50% 35%;
   transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .17s;
 }
-.slot:hover .bx-shade{transform:scaleX(1.08) scaleY(1.34); opacity:.55}
+@media (hover:hover){
+  .slot:hover .bx-shade{transform:scaleX(1.08) scaleY(1.34); opacity:.55}
+}
 
 /* ---- what is printed on the lid ----
    A 和柄 ground, one per script, and the drill workbook's block of type on a label
@@ -424,49 +456,70 @@ body{
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
 }
 .bx-series{
-  position:absolute; left:11px; top:9px; z-index:2;
-  font-size:7.5px; letter-spacing:.16em; color:var(--ink-2);
+  position:absolute; left:8.33cqw; top:6.8cqw; z-index:2;
+  font-size:5.7cqw; letter-spacing:.16em; color:var(--ink-2);
 }
 .bx-plate{
-  position:absolute; left:13px; right:13px; top:33%; bottom:8px; z-index:2;
+  position:absolute; left:9.85cqw; right:9.85cqw; top:33%; bottom:6.06cqw; z-index:2;
   background:linear-gradient(180deg,var(--stock),var(--stock-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */
-  box-shadow:inset 0 0 0 1.5px var(--stock), inset 0 0 0 2.5px var(--rule-soft),
+  box-shadow:inset 0 0 0 1.14cqw var(--stock), inset 0 0 0 1.9cqw var(--rule-soft),
              0 1px 3px rgba(40,32,18,.24);
 }
 .bx-nm{
   position:absolute; left:0; right:0; top:15%; text-align:center;
-  font-size:19px; font-weight:var(--jp-bold); letter-spacing:.07em;
+  font-size:14.4cqw; font-weight:var(--jp-bold); letter-spacing:.07em;
 }
-.bx-nm.lng{font-size:15px}
+.bx-nm.lng{font-size:11.4cqw}
 .bx-nm.solo{top:24%}          /* a kanji box prints no romaji, so its name centres */
 .bx-rom{
   position:absolute; left:0; right:0; top:55%; text-align:center;
-  font-family:var(--latin); font-size:6.5px; letter-spacing:.24em;
+  font-family:var(--latin); font-size:4.9cqw; letter-spacing:.24em;
   text-transform:uppercase; color:var(--ink-3);
 }
 .bx-foot{
-  position:absolute; left:8px; right:8px; bottom:4px;
+  position:absolute; left:6.06cqw; right:6.06cqw; bottom:3cqw;
   display:flex; justify-content:space-between; align-items:baseline;
-  border-top:1px solid var(--rule-soft); padding-top:3.5px;
-  font-size:7px; letter-spacing:.03em; color:var(--ink-2);
+  border-top:1px solid var(--rule-soft); padding-top:2.65cqw;
+  font-size:5.3cqw; letter-spacing:.03em; color:var(--ink-2);
 }
 /* 印 - the volume numeral, stamped. The only colour in the whole app, and only here. */
 .bx-seal{
-  position:absolute; right:7px; top:7px; z-index:5;
-  width:15px; height:15px; display:grid; place-items:center;
-  border:1.2px solid var(--shu); border-radius:1.5px;
-  color:var(--shu); font-size:9.5px; line-height:1; opacity:.92;
+  position:absolute; right:5.3cqw; top:5.3cqw; z-index:5;
+  width:11.4cqw; height:11.4cqw; display:grid; place-items:center;
+  border:.9cqw solid var(--shu); border-radius:1.14cqw;
+  color:var(--shu); font-size:7.2cqw; line-height:1; opacity:.92;
 }
 
 .groups.busy .box{cursor:progress}
 .groups.busy .slot:not(.loading) .box{opacity:.45}
 /* picking a deck takes the lid off it */
 .slot.loading .bx-lid{transform:translateY(-118%) rotate(-3deg); opacity:0}
+/* ---- the chooser at phone width ----
+   Two changes, and the second is the one that matters. The name column goes, because
+   74px of it out of 343 is a quarter of the screen spent on three characters. And the
+   row stops being a queue of 132px boxes with the leftover width beside it: the boxes
+   divide the row between them, so a phone shows two boxes the size of a thumb instead
+   of two the size of a mouse pointer and a column of empty desk. 148px is the smallest
+   box worth printing on, which makes it two boxes on every phone and three by the width
+   at which the name column comes back. */
 @media (max-width:560px){
-  .group{grid-template-columns:1fr; gap:7px; justify-items:start}
-  .group-name{text-align:left; padding-top:0}
+  body{padding-block:24px 30px}
+  .chooser-sub{margin-bottom:20px}
+  .groups{gap:18px}
+  .group{grid-template-columns:1fr; gap:8px}
+  .group-name{
+    flex-direction:row; align-items:baseline; gap:9px;
+    text-align:left; padding-top:0;
+  }
+  /* 148px, or half the row on a screen too narrow to give two boxes that much —
+     one box per row is a lot of scrolling and a box bigger than it needs to be. */
+  .levels{
+    display:grid; gap:17px 12px;
+    grid-template-columns:repeat(auto-fill,minmax(min(148px,calc(50% - 6px)),1fr));
+  }
+  .slot{width:auto}
 }
 .chooser-note{
   font-family:var(--latin); font-size:10px; letter-spacing:.14em; text-transform:uppercase;

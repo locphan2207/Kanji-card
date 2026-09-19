@@ -145,6 +145,26 @@ The 印 stamped with the volume numeral is the only colour anywhere in the app. 
 stamped 全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's
 omnibus is not volume five.
 
+**A box is measured against its own width, like the card.** Every position printed on a
+box is in `cqw` against the slot — 132px wide is 100cqw, so 11px of margin is 8.33cqw and
+the ground's tile scales with it too. This is what lets the chooser be laid out for a
+phone by changing nothing but how wide a box is. Under 560px the name column goes, since
+74px of a 343px screen is a quarter of it spent on three characters, and the row stops
+being a queue of 132px boxes with the leftover width sitting beside them: the boxes divide
+the row between them, two to a row on a phone and three by 560px. A box at 165px is the
+same drawing as a box at 132px, printed larger — not the same small box with its type left
+at the size it was set for a mouse pointer. The page was also held to `height:100%` while
+centring its contents, which on a phone put the title and the first row of boxes above the
+top of the document, where no scroll could reach them; it is a `min-height` now.
+
+**The category is named in English as well.** ひらがな HIRAGANA, カタカナ KATAKANA, 漢字
+KANJI, set beside the row the way the romaji is set under a deck name. Someone who cannot
+yet read kana cannot tell the three rows apart, which is the state everyone using this
+starts in. Only the category is named: 清音 and 濁音 are classes of kana with no English
+name shorter than a sentence, and the box already prints their romaji. The names live in
+`GROUP_EN` in `app.js` rather than in the manifest, because they label the screen and not
+the cards — nothing in `data/` changes.
+
 ## The kana card
 
 A kanji card and a kana card are the same piece of card stock — same stock, same shadow,
