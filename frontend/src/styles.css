@@ -311,7 +311,9 @@ body{
    Shown before any deck is loaded. A deck is a box of cards, so it is drawn as one:
    every box the same size, differing only in what is printed on the lid. */
 .chooser{display:flex; align-items:center; justify-content:center; padding:10px 0}
-.chooser-box{max-width:820px; text-align:center}
+/* Wide enough for the longest row — カタカナ's six decks — to stay on one line:
+   74px of name column, then six 132px boxes and the gaps between them. */
+.chooser-box{max-width:960px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;

@@ -325,6 +325,13 @@ function loadDeck(id) {
   });
 }
 
+/* A merged deck has no file of its own. It names the decks it gathers and is dealt from
+   their files, so the whole script can be drilled in one shuffle without a second copy
+   of the same cards on disk — and without fetching 清音 again to meet it inside 全部. */
+const parts = d => d.parts || [d.id];
+const held = d => parts(d).every(id => decks[id]);
+const loadCards = d => Promise.all(parts(d).map(loadDeck)).then(lists => lists.flat());
+
 function deal(cards, meta) {
   CARDS = cards; DECK = meta; KIND = meta.kind;
   card.replaceChildren(faces(KIND));
@@ -357,6 +364,9 @@ function deckBox(d, vol) {
   // a three-character name sets smaller, and a kanji box prints no romaji so its
   // name centres in the plate instead of sitting above one
   const nm = "bx-nm" + (d.label.length > 2 ? " lng" : "") + (d.rom ? "" : " solo");
+  // 全部 gathers the volumes beside it rather than being the next one, so it is
+  // stamped 全 — a boxed set's omnibus is not volume five.
+  const seal = d.parts ? "全" : VOLUMES[vol] || vol + 1;
 
   const b = document.createElement("button");
   b.className = "box";
@@ -375,7 +385,7 @@ function deckBox(d, vol) {
         `<span class="bx-foot"><span>第${d.lo}–${d.hi}番</span><span>全${d.n}枚</span></span>
        </span>
        <span class="bx-flap"></span>
-       <span class="bx-seal">${VOLUMES[vol] || vol + 1}</span>
+       <span class="bx-seal">${seal}</span>
      </span>
      <span class="bx-depth"></span>`;
 
@@ -383,10 +393,10 @@ function deckBox(d, vol) {
     if (groupList.classList.contains("busy")) return;
     groupList.classList.add("busy");
     slot.classList.add("loading");     // the lid comes off
-    note.textContent = decks[d.id] ? "" : "shuffling the deck…";
-    // A deck that is already cached resolves in the same tick, which would cut the
-    // lid off mid-flight. Hold the table back until the box has actually opened.
-    Promise.all([loadDeck(d.id), settle(reduced ? 0 : 240)])
+    note.textContent = held(d) ? "" : "shuffling the deck…";
+    // A deck already in hand resolves in the same tick, which would cut the lid off
+    // mid-flight. Hold the table back until the box has actually opened.
+    Promise.all([loadCards(d), settle(reduced ? 0 : 240)])
       .then(([cards]) => { groupList.classList.remove("busy"); deal(cards, d); })
       .catch(err => {
         groupList.classList.remove("busy");
