@@ -6,16 +6,16 @@ img{max-width:100%}
 
 :root{
   --desk:#D6D1C4; --desk-2:#C6C0B0;
-  /* the neutral stock, before a series is printed on it. --paper and the three
-     -0 greys are the untinted values the spot colour below is mixed into; the names
-     without the suffix are what everything paints with, so a tinted scope only has
-     to restate those. */
+  /* the neutral stock, before a series is printed on it. --paper and the -0 greys are
+     the untinted values a series mixes into; the names without the suffix are what
+     everything paints with, so a series only has to restate those. */
   --paper:#FCFAF4; --paper-2:#F5F1E6;
   --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE; --ghost-0:#E3DFD5;
+  --ink-3-0:#8B857A;
   --stock:var(--paper); --stock-2:var(--paper-2);
   --edge:var(--edge-0); --rule:var(--rule-0);
-  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0);
-  --ink:#16161A; --ink-2:#55524B; --ink-3:#8B857A;
+  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0); --ink-3:var(--ink-3-0);
+  --ink:#16161A; --ink-2:#55524B;
   --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
   --ui:#4A453C;
   /* the deck boxes. A box is cream stock in either theme, so the seal is stated once
@@ -48,45 +48,55 @@ img{max-width:100%}
   --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
 }
 
-/* ============ the three series, each printed in a second ink ============
-   A category is not a coloured panel behind the cards. It is a spot colour on the same
-   cream stock, which is what a workbook is actually printed in: one plate of black for
-   what you read, one plate of colour for everything around it. So a series states its
-   ink and the stock that ink is printed on, and every coloured thing in the scope is
-   mixed from those two — the 和柄 ground, the hairlines, the tracing ghost in the
-   practice strip. Nothing mixes into --ink or --shu: the words stay black and the 印
-   stays 朱 in all three series, because those are what the card is. Only the stock
-   changes, which is the same thing as saying only the deck changes.
+/* ============ the three series, each on its own stock ============
+   A workbook series is the same design printed on a different coloured cover per volume,
+   and that is what this is. Each series states two values: --wash, the stock it is
+   printed on, and --spot, the second ink everything printed on that stock is mixed
+   from — the 和柄 ground, the hairlines, the tracing ghost in the practice strip.
+   Nothing mixes into --ink or --shu: the words stay black and the 印 stays 朱 in all
+   three, because those are what the card is. Only the stock changes, which is the same
+   thing as saying only the deck changes.
 
-   The rule that keeps it quiet is that colour appears only where a grey already was.
-   There is no new coloured element anywhere below — the ground, the rules and the ghost
-   were neutral greys and are now tinted ones — so the loudest the page can get is the
-   loudest it already was. It is also why the desk keeps out of it: the desk is the room
-   the cards are in, not one of the cards.
+   What keeps it from getting loud is that colour appears only where something already
+   was. There is no new element anywhere below — the ground, the rules and the ghost were
+   neutral greys and are tinted ones now, and the stock was already a colour, just a
+   cream one. The deck label is where that rule shows: it is a slip of paper pasted onto
+   the box, so it stays on the plain stock, and the coloured ground makes it read more
+   like a pasted label than it did on cream. The desk keeps out of it too — the desk is
+   the room the cards are in, not one of them.
 
-   Two values per series and not one, because ink and stock are two different choices.
-   --spot is saturated, because it is mixed into warm greys and a grey eats chroma: a
-   muted ink mixed into a muted grey came out as the grey. --wash is the same hue at
-   the paper's own lightness, so tinting the stock moves its colour without darkening
-   it — mixing --spot into the paper instead made each deck's card as much darker as
-   its ink happened to be, which is a difference nobody chose.
+   Two values and not one, because ink and stock are separate choices. The ink is
+   saturated, since it is mixed into warm greys and a grey eats chroma: a muted ink into
+   a muted grey came out as the grey. The wash is the same hue at the paper's own
+   lightness, so the stock changes colour without changing how dark it is — mixing the
+   ink into the paper instead made each deck's card as much darker as its ink happened
+   to be, which is a difference nobody chose.
 
-   Each ink is the thing itself, not a slot in a spectrum:
+   The three inks are a progression, not three unrelated hues, because the rows are
+   stacked and read in order:
      ひらがな 藍     — 青海波 has 青 in its name; the wave pattern in indigo.
-     カタカナ 緑青   — verdigris, the patina 鱗 (scale armour) goes to.
-     漢字     丁子   — the 渋紙 a drill workbook is bound in. Warm, and far enough from
-                       the 朱 seal stamped on top of it that the two do not argue. */
+     カタカナ 青磁   — celadon, the glaze 鱗 (scale armour) is drawn in.
+     漢字     山吹   — gold, which is what makes 格子 read as the 方眼紙 the practice is
+                       done on rather than as brown lines, and the kanji card as the
+                       parchment a workbook is printed on. */
 [data-cat]{
-  --stock:color-mix(in srgb,var(--wash) 28%,var(--paper));
-  --stock-2:color-mix(in srgb,var(--wash) 36%,var(--paper-2));
-  --edge:color-mix(in srgb,var(--spot) 28%,var(--edge-0));
-  --rule:color-mix(in srgb,var(--spot) 38%,var(--rule-0));
-  --rule-soft:color-mix(in srgb,var(--spot) 32%,var(--rule-soft-0));
-  --ghost:color-mix(in srgb,var(--spot) 24%,var(--ghost-0));
+  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
+  --edge:color-mix(in srgb,var(--spot) 40%,var(--edge-0));
+  --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
+  --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
+  --ghost:color-mix(in srgb,var(--spot) 36%,var(--ghost-0));
+  /* The small labels darken with the stock, the way you print darker on darker paper.
+     --ink-3 sets 五十音, 字源, ことば and the 裏 mark, and at 3.5:1 on cream it had
+     nothing to spare; on the gold stock it fell to 3.0:1, which is under what a label
+     this size needs. Mixed 34% toward the body ink it is back over 4.5:1 on all three
+     stocks. The ink it moves toward is --ink and not --spot: these are words, and a
+     word on this card is black. */
+  --ink-3:color-mix(in srgb,var(--ink) 34%,var(--ink-3-0));
 }
-[data-cat="hiragana"]{--spot:#20537C; --wash:#DCE9F2}
-[data-cat="katakana"]{--spot:#2E6B5A; --wash:#DDEDE2}
-[data-cat="kanji"]   {--spot:#7E5B26; --wash:#F4E9CF}
+[data-cat="hiragana"]{--spot:#1B4F8A; --wash:#CCDDEB}
+[data-cat="katakana"]{--spot:#2E7F66; --wash:#CDE6DA}
+[data-cat="kanji"]   {--spot:#B07A16; --wash:#F3E1B6}
 
 *{box-sizing:border-box}
 /* A minimum, not a height. The body centres its content, and a centred flex container
@@ -494,7 +504,7 @@ body{
    the ink is set to. */
 /* 青海波 - two arc layers offset by half a tile, which is how the pattern is laid */
 [data-cat="hiragana"] .bx-pat{
-  --pat:color-mix(in srgb,var(--spot) 26%,transparent);
+  --pat:color-mix(in srgb,var(--spot) 38%,transparent);
   --arc:repeating-radial-gradient(circle at 50% 100%,
     transparent 0 calc(var(--ps) * .17), var(--pat) calc(var(--ps) * .17) calc(var(--ps) * .205),
     transparent calc(var(--ps) * .205) calc(var(--ps) * .5));
@@ -504,7 +514,7 @@ body{
 }
 /* 鱗 */
 [data-cat="katakana"] .bx-pat{
-  --pat:color-mix(in srgb,var(--spot) 13%,transparent);
+  --pat:color-mix(in srgb,var(--spot) 19%,transparent);
   background-image:
     linear-gradient(135deg,var(--pat) 25%,transparent 25%),
     linear-gradient(225deg,var(--pat) 25%,transparent 25%);
@@ -512,7 +522,7 @@ body{
 }
 /* 格子 - which on the kanji boxes reads as 方眼紙, the paper the practice is done on */
 [data-cat="kanji"] .bx-pat{
-  --pat:color-mix(in srgb,var(--spot) 26%,transparent);
+  --pat:color-mix(in srgb,var(--spot) 36%,transparent);
   background-image:
     repeating-linear-gradient(to right,var(--pat) 0 1px,transparent 1px var(--ps)),
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));

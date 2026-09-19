@@ -145,31 +145,43 @@ The 印 stamped with the volume numeral is 朱 on every box in every series. 全
 全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's omnibus is
 not volume five.
 
-**A series is a second ink, not a coloured panel.** Each of the three categories has its
-own colour, on its boxes and on its cards — 藍 for ひらがな, because 青海波 has 青 in its
-name; 緑青 for カタカナ, the patina 鱗 (scale armour) goes to; 丁子 for 漢字, the 渋紙 a
-drill workbook is bound in. But the colour is not a field behind anything. A workbook is
-printed in two plates, one of black for what you read and one of colour for everything
-around it, and that is what this is: the 和柄 ground, the hairlines, the tracing ghost in
-the practice strip. The words stay black and the 印 stays 朱 in all three, because those
-are what the card is; only the stock it is printed on changes, which is another way of
-saying only the deck changes.
+**A series is printed on its own stock.** A workbook series is the same design on a
+different coloured cover per volume, and that is what the three categories are — 藍 for
+ひらがな, because 青海波 has 青 in its name; 青磁 for カタカナ, the glaze 鱗 (scale armour)
+is drawn in; 山吹 for 漢字, gold, which is what makes 格子 read as the 方眼紙 the practice
+is done on rather than as brown lines, and the kanji card as the parchment a workbook is
+printed on. They are a progression rather than three unrelated hues, because the rows are
+stacked and read in order.
 
-The rule that keeps it quiet is that **colour appears only where a grey already was.**
-There is no new coloured element anywhere — the ground, the rules and the ghost were
-neutral greys and are tinted ones now — so the loudest the page can get is the loudest it
-already was. The deck label is the exception that proves it: it is a slip of paper pasted
-onto the box, so it stays on the plain stock, and no deck name has colour under it. The
-desk keeps out of it too, because the desk is the room the cards are in, not one of them.
+The colour is not a panel behind anything. A series states the stock and one second ink,
+and everything printed on that stock is mixed from the ink: the 和柄 ground, the
+hairlines, the tracing ghost in the practice strip. Nothing mixes into `--ink` or `--shu`
+— the words stay black and the 印 stays 朱 in all three, because those are what the card
+is. Only the stock changes, which is another way of saying only the deck changes.
+
+What keeps it from getting loud is that **colour appears only where something already
+was.** There is no new element anywhere — the ground, the rules and the ghost were
+neutral greys and are tinted ones now, and the stock was already a colour, just a cream
+one. The deck label is where that rule shows: it is a slip of paper pasted onto the box,
+so it stays on the plain stock, and against a coloured ground it reads more like a pasted
+label than it ever did on cream. The desk keeps out of it too, because the desk is the
+room the cards are in, not one of them.
 
 A series states two values and not one, `--spot` and `--wash`, because ink and stock are
 two different choices. The ink is saturated, since it is mixed into warm greys and a grey
 eats chroma — a muted ink mixed into a muted grey came out as the grey, which was the
 first attempt and looked like nothing had been done. The wash is the same hue at the
-paper's own lightness, so tinting the stock moves its colour without darkening it; mixing
-the ink into the paper instead made each deck's card as much darker as its ink happened
-to be, which is a difference nobody chose. Everything else is mixed from those two, so a
-series is two lines of CSS and the rest follows.
+paper's own lightness, so the stock changes colour without changing how dark it is;
+mixing the ink into the paper instead made each deck's card as much darker as its ink
+happened to be, which is a difference nobody chose. Everything else is mixed from those
+two, so a series is two lines of CSS and the rest follows.
+
+**The small labels darken with the stock**, the way you print darker on darker paper.
+`--ink-3` sets 五十音, 字源, ことば and the 裏 mark, and at 3.5:1 on cream it had nothing
+in hand; on the gold stock it fell to 3.0:1, under what a label that size needs. Mixed a
+third of the way toward the body ink it clears 4.5:1 on all three stocks in both themes,
+with the body ink at 13.5:1 and the glosses at 5.9:1. It moves toward `--ink` rather than
+toward the series' ink, because these are words, and a word on this card is black.
 
 **The three grounds do not take the same amount of ink.** 青海波 is a field of thin arcs,
 鱗 is solid triangles that fill half the box, and 格子 is a grid of single pixels. Given
