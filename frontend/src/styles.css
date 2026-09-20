@@ -1,6 +1,11 @@
 /* The artifact host supplied these; a standalone page has to declare them itself. */
 *{box-sizing:border-box}
+/* `light dark` hands the choice to the system. A forced theme has to pin it as well,
+   or the one part of the page the page does not draw — the scrollbars, the form
+   controls, the UA's own focus ring — stays in the room the rest of it just left. */
 html{color-scheme:light dark}
+html[data-theme="light"]{color-scheme:light}
+html[data-theme="dark"]{color-scheme:dark}
 img{max-width:100%}
 [hidden]{display:none!important}
 
@@ -127,6 +132,37 @@ body{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:30px;
   -webkit-font-smoothing:antialiased;
 }
+
+/* ============ the lamp ============
+   The desk is the room the cards are in, so the switch for it is not on the table. It is
+   a child of <body> rather than of either screen, which is what keeps it in one place
+   while the chooser gives way to the table and back — and in the flow rather than fixed
+   to a corner, because the card is min(94vw,680px) and a corner on a phone is the corner
+   of the card. It costs a row at the top of the page and never lands on anything.
+
+   It sizes itself to the chooser's 960px and not to the table's 680px so that it does
+   not move when a deck is picked: the two screens are different widths and the switch
+   belongs to neither.
+
+   Set like `change deck`, because it is the same kind of thing — small, off to one side,
+   and asking to be found rather than looked at. The face is the 昼/夜 of the room you
+   are not in, in the card's own face, next to the word for it, the way a pile carries
+   both 済 and 済み. The focus ring is currentColor and not --ink: --ink is the near-black
+   the words on a card are printed in, and it is the same near-black in both rooms, which
+   is invisible against a dark desk. */
+.room{display:flex; justify-content:flex-end; width:100%; max-width:960px}
+.lamp{
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--latin); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase;
+  background:transparent; color:var(--ui); border:1px solid currentColor; border-radius:2px;
+  padding:6px 10px; cursor:pointer; opacity:.5; transition:opacity .12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.lamp:hover{opacity:.9}
+.lamp:focus-visible{outline:2px solid currentColor; outline-offset:3px; opacity:.9}
+/* letter-spacing is the label's, not the character's: an em of tracking after a single
+   kanji is a gap the flex gap has already left. */
+.lamp-mark{font-family:var(--jp); font-size:12px; letter-spacing:0; line-height:1}
 
 /* ============ the card ============
    Geometry taken from the reference photo, perspective-corrected to 1380x1000.
