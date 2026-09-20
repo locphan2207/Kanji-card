@@ -11,11 +11,10 @@ img{max-width:100%}
      everything paints with, so a series only has to restate those. */
   --paper:#FCFAF4; --paper-2:#F5F1E6;
   --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE; --ghost-0:#E3DFD5;
-  --ink-3-0:#8B857A;
   --stock:var(--paper); --stock-2:var(--paper-2);
   --edge:var(--edge-0); --rule:var(--rule-0);
-  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0); --ink-3:var(--ink-3-0);
-  --ink:#16161A; --ink-2:#55524B;
+  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0);
+  --ink:#16161A; --ink-2:#55524B; --ink-3:#8B857A;
   --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
   --ui:#4A453C;
   /* the deck boxes. A box is cream stock in either theme, so the seal is stated once
@@ -80,20 +79,31 @@ img{max-width:100%}
                        done on rather than as brown lines, and the kanji card as the
                        parchment a workbook is printed on. */
 [data-cat]{
-  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
-  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
-  --edge:color-mix(in srgb,var(--spot) 40%,var(--edge-0));
+  --rim:color-mix(in srgb,var(--spot) 70%,var(--edge-0));
+  --edge:var(--rim);
   --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
   --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
   --ghost:color-mix(in srgb,var(--spot) 36%,var(--ghost-0));
-  /* The small labels darken with the stock, the way you print darker on darker paper.
-     --ink-3 sets 五十音, 字源, ことば and the 裏 mark, and at 3.5:1 on cream it had
-     nothing to spare; on the gold stock it fell to 3.0:1, which is under what a label
-     this size needs. Mixed 34% toward the body ink it is back over 4.5:1 on all three
-     stocks. The ink it moves toward is --ink and not --spot: these are words, and a
-     word on this card is black. */
-  --ink-3:color-mix(in srgb,var(--ink) 34%,var(--ink-3-0));
 }
+/* A box is the coloured object; a card is not. The box is the packaging, seen once,
+   from across a grid of sixteen, and it can afford to be printed on coloured stock.
+   The card is read for minutes at a time, and a wash across the whole of it turned
+   the paper into a surface with a colour rather than paper. So the card keeps the
+   cream it always had, and the series shows on its edge — which is where a deck shows
+   its colour anyway. A stack of cards presents its edges and nothing else, and the
+   piles here are built from real offset layers, so the draw pile and the discard both
+   come out striped in the series' colour without anything being drawn for them. */
+[data-cat] .slot{
+  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
+}
+/* Thick enough to read as the painted edge of card stock rather than as a keyline, in
+   cqw like everything else so it is the same drawing at any size. It eats into the
+   face's content box and so shrinks every cqw inside it by about 0.85% — the whole
+   card, uniformly, which is the rim being the edge of the stock rather than a frame
+   drawn on top of it. */
+[data-cat] .face{border-width:.4cqw}
+[data-cat] .layer{border-width:1.5px}
 [data-cat="hiragana"]{--spot:#1B4F8A; --wash:#CCDDEB}
 [data-cat="katakana"]{--spot:#2E7F66; --wash:#CDE6DA}
 [data-cat="kanji"]   {--spot:#B07A16; --wash:#F3E1B6}

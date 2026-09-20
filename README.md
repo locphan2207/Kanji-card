@@ -149,26 +149,11 @@ not volume five.
 different coloured cover per volume, and that is what the three categories are — 藍 for
 ひらがな, because 青海波 has 青 in its name; 青磁 for カタカナ, the glaze 鱗 (scale armour)
 is drawn in; 山吹 for 漢字, gold, which is what makes 格子 read as the 方眼紙 the practice
-is done on rather than as brown lines, and the kanji card as the parchment a workbook is
-printed on. They are a progression rather than three unrelated hues, because the rows are
-stacked and read in order.
+is done on rather than as brown lines. They are a progression rather than three unrelated
+hues, because the rows are stacked and read in order.
 
-The colour is not a panel behind anything. A series states the stock and one second ink,
-and everything printed on that stock is mixed from the ink: the 和柄 ground, the
-hairlines, the tracing ghost in the practice strip. Nothing mixes into `--ink` or `--shu`
-— the words stay black and the 印 stays 朱 in all three, because those are what the card
-is. Only the stock changes, which is another way of saying only the deck changes.
-
-What keeps it from getting loud is that **colour appears only where something already
-was.** There is no new element anywhere — the ground, the rules and the ghost were
-neutral greys and are tinted ones now, and the stock was already a colour, just a cream
-one. The deck label is where that rule shows: it is a slip of paper pasted onto the box,
-so it stays on the plain stock, and against a coloured ground it reads more like a pasted
-label than it ever did on cream. The desk keeps out of it too, because the desk is the
-room the cards are in, not one of them.
-
-A series states two values and not one, `--spot` and `--wash`, because ink and stock are
-two different choices. The ink is saturated, since it is mixed into warm greys and a grey
+A series states two values, `--spot` and `--wash`, because ink and stock are two
+different choices. The ink is saturated, since it is mixed into warm greys and a grey
 eats chroma — a muted ink mixed into a muted grey came out as the grey, which was the
 first attempt and looked like nothing had been done. The wash is the same hue at the
 paper's own lightness, so the stock changes colour without changing how dark it is;
@@ -176,12 +161,33 @@ mixing the ink into the paper instead made each deck's card as much darker as it
 happened to be, which is a difference nobody chose. Everything else is mixed from those
 two, so a series is two lines of CSS and the rest follows.
 
-**The small labels darken with the stock**, the way you print darker on darker paper.
-`--ink-3` sets 五十音, 字源, ことば and the 裏 mark, and at 3.5:1 on cream it had nothing
-in hand; on the gold stock it fell to 3.0:1, under what a label that size needs. Mixed a
-third of the way toward the body ink it clears 4.5:1 on all three stocks in both themes,
-with the body ink at 13.5:1 and the glosses at 5.9:1. It moves toward `--ink` rather than
-toward the series' ink, because these are words, and a word on this card is black.
+**A box is the coloured object. A card is not.** The box is packaging: seen once, from
+across a grid of sixteen, at 132px, and it can afford to be printed on coloured stock.
+The card is read for minutes at a time, and the same wash across the whole of it turned
+the paper into a surface with a colour on it rather than into paper. So the card keeps
+the cream it always had, and the series shows **on its edge** — which is where a deck
+shows its colour anyway. A stack of cards presents its edges and nothing else.
+
+That last part is not a metaphor here. The piles are built from real offset layers, one
+per card, so colouring the edge makes the draw pile and the discard come out striped in
+the series' colour with nothing drawn for them — the deck shows what it is the same way
+a physical deck does, by being stacked. It is the best argument for the edge over the
+alternatives that were tried: a tinted practice strip (which read as a highlighted row
+and cost the tracing ghost its contrast), a band across the head or a bled edge down the
+spine (both of which read as interface rather than as print), and a corner index (which
+collides with the big character on both backs).
+
+So on a card the colour lands on the rim, the hairlines and the tracing ghost, and
+nowhere as a field. This is the strictest form of the rule the whole scheme runs on:
+**colour appears only where a grey already was.** The rim was a 1px `--edge`, the rules
+were `--rule` and `--rule-soft`, the ghost was `--ghost` — all of them neutral greys, all
+of them tinted ones now, and not one new element on the card. The desk keeps out of it
+too, because the desk is the room the cards are in, not one of them.
+
+The rim is stated in `cqw` like everything else, so it is the same drawing at any size.
+It eats into the face's content box, which shrinks every `cqw` measurement inside it by
+about 0.85% — the whole card, uniformly. That is the rim being the edge of the stock
+rather than a frame drawn on top of it.
 
 **The three grounds do not take the same amount of ink.** 青海波 is a field of thin arcs,
 鱗 is solid triangles that fill half the box, and 格子 is a grid of single pixels. Given
