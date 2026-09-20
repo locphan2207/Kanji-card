@@ -441,7 +441,7 @@ body{
    second is the first, larger, rather than the same small box with the type left behind
    at the size it was set for a mouse. */
 .slot{
-  --bx-d:10cqw;                 /* the projected depth of the box */
+  --bx-d:6.5cqw;                /* the projected depth of the box */
   position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
   container-type:inline-size;
 }
