@@ -210,7 +210,12 @@ body{
 .mini{
   position:absolute; top:0; left:0; width:var(--card-w); aspect-ratio:1.38;
   transform:scale(.4); transform-origin:top left; pointer-events:none;
+  transition:opacity .15s ease;
 }
+/* A pile in motion has no top card to show. The face the gather left on the pile goes as
+   the riffle starts and the one the shuffle chose arrives when it stops, so what the pile
+   shows is only ever what is actually lying on top of it. */
+.pile.shuffling .mini{opacity:0}
 .mini .face{box-shadow:none; border:none; border-radius:16px}
 .card.hidden{visibility:hidden}
 
@@ -369,18 +374,15 @@ body{
 .swap{animation:swap .34s ease}
 @keyframes swap{from{opacity:0} to{opacity:1}}
 
-/* ============ controls ============ */
+/* ============ controls ============
+   There was a Draw button here once, styled `.draw` — black, padded, 2px corners. It
+   went when the pile itself became the thing you click, but its rules stayed, and the
+   draw pile is `class="pile draw"`: same specificity as `.pile`, further down the file,
+   so it won. Every one of those declarations was landing on the pile, and the black was
+   showing through the moment the pile emptied — which is exactly the pile you are
+   looking at when the deck runs out. The two piles are one object in two states and now
+   compute as one. */
 .controls{display:flex; flex-direction:column; align-items:center; gap:13px}
-.draw{
-  font-family:var(--latin); font-size:13px; letter-spacing:.17em; text-transform:uppercase;
-  background:var(--ink); color:var(--stock); border:none; border-radius:2px;
-  padding:13px 30px; cursor:pointer; display:inline-flex; align-items:center; gap:11px;
-  transition:transform .12s ease, opacity .12s ease;
-}
-.draw .kana{font-family:var(--jp); font-size:15px; letter-spacing:.1em; text-transform:none}
-.draw:hover{transform:translateY(-1px)}
-.draw:active{transform:translateY(1px)}
-.draw:focus-visible{outline:2px solid var(--ink); outline-offset:4px}
 .hint{font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--ui); opacity:.6}
 .hint kbd{font:inherit; border:1px solid currentColor; border-radius:2px; padding:1px 5px}
 .picker{display:grid; grid-template-columns:auto 1fr; align-items:center; gap:9px 12px; max-width:700px}

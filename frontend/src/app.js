@@ -11,6 +11,10 @@ const settle = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 let CARDS = [], DECK = null, KIND = "kanji";
 let deck = [], used = [], current = -1, busy = false, flipped = false;
+/* Which deal is on the table. Only a reshuffle reads it: it is the one thing here that
+   outlives the click that started it by long enough for the table to have been given a
+   different deck underneath it. */
+let hand = 0;
 
 /* Two card shapes, kept as templates rather than one live node, because a deck is all
    one kind and the table only ever holds cards from one deck. */
@@ -171,6 +175,10 @@ function miniFace(idx, which) {
   return wrap;
 }
 
+/* How many cards a pile is holding and which one is on top, which is the whole of what a
+   pile shows. The count is part of that and not a separate thing the caller remembers to
+   update — a reshuffle paints the two piles a dozen times while the deck is in the air
+   and the tags have to follow the layers exactly. */
 function renderPile(el, count, topIdx, which) {
   const stack = el.querySelector(".stack");
   stack.innerHTML = "";
@@ -181,14 +189,13 @@ function renderPile(el, count, topIdx, which) {
     if (i === layers - 1 && topIdx != null) l.appendChild(miniFace(topIdx, which));
     stack.appendChild(l);
   }
+  el.querySelector(".tag b").textContent = count;
   el.classList.toggle("empty", count === 0);
 }
 
 function renderPiles() {
   renderPile(drawPile, deck.length, deck.length ? deck[0] : null, "front");
   renderPile(usedPile, used.length, used.length ? used[used.length - 1] : null, "back");
-  $("drawN").textContent = deck.length;
-  $("usedN").textContent = used.length;
   const empty = deck.length === 0;
   drawPile.setAttribute("aria-label", empty
     ? "Draw pile is empty. Activate to shuffle the discards back in."
@@ -346,17 +353,147 @@ function revertCard() {
   }, 150);
 }
 
-function reshuffle() {
+/* ============ the pile runs out ============
+   Everything you have finished with is turned over and becomes the pile you draw from
+   again, which is what a person does with a discard: pick it up, turn it over, shuffle
+   it, set it down. So it is animated as those four things in that order — a gather that
+   turns each card over on its way across, two riffles, and a square-up. The card in your
+   hand stays there throughout — you shuffle the discard around it — which is why
+   `current` is the one index a reshuffle never touches.
+
+   Six cards stand in for the whole pile, as in the deal, and each carries its share of
+   the count across: the discard gives its share up as the card leaves and the draw pile
+   takes it as the card lands, so the difference is in the air, which is where the cards
+   are.
+
+   A gather cannot be honest at both ends. What leaves the discard is what is lying on
+   it, top card first; what the pile is left holding is whatever the shuffle decides. So
+   the pile shows the card that really landed on it right up to the riffle, the riffle
+   shows no top card at all — a pile in motion has none to show — and the face that comes
+   back is the one the shuffle put there. Nothing untrue is on screen at rest. */
+const GATHER_N = 6, GATHER_GAP = 62;
+
+/* One card off the discard and onto the draw pile. Built on the pile it lands on and
+   animated back from the pile it left, like every other flight here.
+
+   It turns over on the way, because the discard lies readings-up and the draw pile lies
+   front-up — the same rule that has a draw not flip and a discard flip, applied to a
+   whole pile one card at a time. The turn is done by the time the card is a third of the
+   way across, so the second half of the flight shows the face the pile is about to be
+   holding rather than an edge. */
+function gatherFly(dest, f, idx, lean) {
+  const g = makeFlyer(dest, idx);
+  return g.animate([
+    { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s})`
+      + ` rotateY(180deg) rotate(${lean}deg)` },
+    { transform: P + `translate(${f.dx * .52}px,${f.dy * .52 - 34}px)`
+      + ` scale(${(f.s + 1) / 2}) rotateY(14deg) rotate(${lean * .45}deg)`, offset: .46 },
+    { transform: P + "translate(0,0) scale(1) rotateY(0deg) rotate(0deg)" },
+  ], { duration: 400, easing: "cubic-bezier(.33,.66,.3,1)", fill: "forwards" })
+    .finished.catch(() => {}).finally(() => g.remove());
+}
+
+/* The discard crossing the table. The flyers are made at the moment each one leaves
+   rather than up front, so the one on its way is always the one painted over the rest —
+   a card waiting its turn on top of the discard would be showing a face that is two or
+   three cards down. */
+function gather(pending) {
+  const N = pending.length, n = Math.min(GATHER_N, N);
+  const dest = drawPile.getBoundingClientRect();
+  const f = flight(dest, usedPile.getBoundingClientRect());
+  const share = k => Math.round(N * k / n);
+
+  return Promise.all(Array.from({ length: n }, (_, i) => new Promise(done => {
+    setTimeout(() => {
+      const idx = pending[N - 1 - i], left = N - share(i + 1);
+      renderPile(usedPile, left, left ? pending[left - 1] : null, "back");
+      gatherFly(dest, f, idx, -6 + i * 2.2).then(() => {
+        renderPile(drawPile, share(i + 1), idx, "front");
+        done();
+      });
+    }, i * GATHER_GAP);
+  })));
+}
+
+/* A riffle, drawn with the pile's own layers: the stack splits in two, the halves lean
+   apart, and the cards fall back one at a time rather than together. The cascade is most
+   of what a riffle looks like, and the packets falling alternately is the rest of it —
+   without that it is two halves rejoining, which is a cut.
+
+   composite:"add" lays this over the 1.5px step each layer already carries, so the pile
+   keeps its thickness while it is shuffled. A browser that does not understand it
+   riffles a flat pile, which is the whole of what it costs. */
+function riffle(dir, duration, delay) {
+  const layers = [...drawPile.querySelectorAll(".layer")];
+  if (!layers.length) return Promise.resolve();
+  // Far enough apart to read as two packets rather than one pile bulging: five cream
+  // rectangles 1.5px apart have no texture to riffle, so the separation is the only
+  // signal there is and it has to be taken.
+  const spread = drawPile.getBoundingClientRect().width * .19;
+  const half = Math.ceil(layers.length / 2), last = Math.max(layers.length - 1, 1);
+  // deepest card of one packet, deepest of the other, and up: 0,3,1,4,2 for a five-layer
+  // pile, which is the order a riffle actually drops them in
+  const rank = i => i < half ? i * 2 : (i - half) * 2 + 1;
+
+  return Promise.all(layers.map((l, i) => {
+    const side = (i < half ? -1 : 1) * dir;
+    const lean = side * (2.4 + (i % 3) * 1.2);
+    const fall = .5 + (rank(i) / last) * .36;
+    return l.animate([
+      { transform: "translate(0,0) rotate(0deg)" },
+      { transform: `translate(${side * spread}px,${-4 - i * 1.4}px) rotate(${lean}deg)`,
+        offset: .3, easing: "cubic-bezier(.2,.9,.35,1)" },
+      { transform: `translate(${side * spread * .28}px,${-2 - i * .5}px)`
+        + ` rotate(${lean * .3}deg)`, offset: fall },
+      { transform: "translate(0,0) rotate(0deg)" },
+    ], { duration, delay, composite: "add", easing: "cubic-bezier(.4,.05,.25,1)" })
+      .finished.catch(() => {});
+  }));
+}
+
+/* and set down: the pile is squared against the table once, which is what stops the
+   riffle rather than it simply ending. */
+function squareUp() {
+  return drawPile.querySelector(".stack").animate([
+    { transform: "translateY(-5px)" }, { transform: "translateY(1.5px)" },
+    { transform: "none" },
+  ], { duration: 220, easing: "cubic-bezier(.3,.8,.35,1)" }).finished.catch(() => {});
+}
+
+async function reshuffle() {
   if (busy || !used.length) return;
   busy = true;
-  deck = shuffle(used);
+
+  const pending = used;             // the pile being picked up, bottom card first
   used = [];
-  renderPiles();
-  drawPile.animate([
-    { transform: "translateY(0)" }, { transform: "translateY(-10px) rotate(-2deg)" },
-    { transform: "none" },
-  ], { duration: 420, easing: "ease-out" })
-    .finished.then(() => { busy = false; }).catch(() => { busy = false; });
+  if (reduced) {
+    deck = shuffle(pending); renderPiles(); busy = false;
+    return;
+  }
+
+  // A reshuffle takes a second and a half and the chooser is one click away for all of
+  // it, so a gather that finishes after the table has been given a different deck has to
+  // land on nothing rather than put the old deck back.
+  const mine = hand;
+  try {
+    await gather(pending);
+    if (mine !== hand) return;
+    drawPile.classList.add("shuffling");
+    await Promise.all([riffle(1, 330, 0), riffle(-1, 290, 330)]);
+    if (mine !== hand) return;
+
+    deck = shuffle(pending);
+    renderPiles();                  // the pile is holding what the shuffle decided
+    drawPile.classList.remove("shuffling");
+    // faded in rather than switched on: the face is brand new, so a CSS transition off
+    // the class has nothing to start from and would simply appear
+    const top = drawPile.querySelector(".mini");
+    if (top) top.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 190, easing: "ease-out" });
+    await squareUp();
+  } finally {
+    drawPile.classList.remove("shuffling");
+    if (mine === hand) busy = false;   // a new deal has already set its own
+  }
 }
 
 drawPile.addEventListener("click", drawCard);
@@ -419,7 +556,7 @@ const loadCards = d => Promise.all(parts(d).map(loadDeck)).then(lists => lists.f
 function deal(cards, meta) {
   CARDS = cards; DECK = meta; KIND = meta.kind;
   card.replaceChildren(faces(KIND));
-  used = []; busy = false;
+  used = []; busy = false; hand++;
   current = Math.floor(Math.random() * CARDS.length);
   deck = shuffle(CARDS.map((_, i) => i).filter(i => i !== current));
   setFlipped(false);
