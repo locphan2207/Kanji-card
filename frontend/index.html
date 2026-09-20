@@ -77,11 +77,12 @@
   </div>
 
   <div class="piles">
-    <div class="pile used" id="usedPile" aria-hidden="true">
+    <button class="pile used" id="usedPile"
+            aria-label="Discard pile. Activate to take the last card back.">
       <div class="stack"></div>
       <span class="mark">済</span>
       <span class="tag">済み <b id="usedN">0</b></span>
-    </div>
+    </button>
     <button class="pile draw" id="drawPile" aria-label="Draw pile. Activate to draw a card.">
       <div class="stack"></div>
       <span class="mark">山</span>

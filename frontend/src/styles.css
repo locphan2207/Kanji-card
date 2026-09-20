@@ -163,6 +163,9 @@ body{
   flex:none;
 }
 .pile.draw{cursor:pointer}
+/* the discard is live too — its top card comes back to the table — but only while there
+   is a card on it to take back */
+.pile.used:not(:disabled){cursor:pointer}
 .stack{position:absolute; inset:0}
 /* each layer sits a shade up-left of the one above, so the pile reads as thickness */
 .stack .layer:nth-last-child(1){transform:none}
@@ -170,8 +173,10 @@ body{
 .stack .layer:nth-last-child(3){transform:translate(-3px,-3px)}
 .stack .layer:nth-last-child(4){transform:translate(-4.5px,-4.5px)}
 .stack .layer:nth-last-child(5){transform:translate(-6px,-6px)}
-.pile.draw:hover .stack .layer:last-child{transform:translateY(-4px)}
-.pile.draw:active .stack .layer:last-child{transform:translateY(-1px)}
+.pile.draw:hover .stack .layer:last-child,
+.pile.used:not(:disabled):hover .stack .layer:last-child{transform:translateY(-4px)}
+.pile.draw:active .stack .layer:last-child,
+.pile.used:not(:disabled):active .stack .layer:last-child{transform:translateY(-1px)}
 .pile:focus-visible{outline:2px solid var(--ink); outline-offset:6px; border-radius:6px}
 .layer{
   position:absolute; inset:0; border-radius:6px; overflow:hidden;

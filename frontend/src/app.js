@@ -193,9 +193,17 @@ function renderPiles() {
   drawPile.setAttribute("aria-label", empty
     ? "Draw pile is empty. Activate to shuffle the discards back in."
     : `Draw pile, ${deck.length} cards. Activate to draw.`);
-  $("hint").innerHTML = empty
+  // Nothing has been finished with yet, so there is nothing to take back: the discard is
+  // a button that is simply not offered rather than one that does nothing when pressed.
+  usedPile.disabled = !used.length;
+  usedPile.setAttribute("aria-label", used.length
+    ? `Discard pile, ${used.length} cards. Activate to take the last one back.`
+    : "Discard pile is empty.");
+  // the third line only appears once there is something behind you to go back to
+  $("hint").innerHTML = (empty
     ? "the pile is out — click it to shuffle the discards back in"
-    : "click the pile or press <kbd>space</kbd> · <kbd>f</kbd> turns the card over";
+    : "click the pile or press <kbd>space</kbd> · <kbd>f</kbd> turns the card over") +
+    (used.length ? " · <kbd>z</kbd> takes the last card back" : "");
 }
 
 const flight = (from, to) => ({
@@ -272,6 +280,72 @@ function drawCard() {
   }, 150);
 }
 
+/* A draw, run backwards. The card in hand goes back on top of the draw pile it came off,
+   and the last card you finished with comes back off the discard — so a draw taken by
+   mistake, or a card turned over before you had really answered it, costs one click
+   rather than a lap of the whole deck.
+
+   It comes back readings-up, because that is how it was lying. The discard holds cards
+   readings-up and a card sliding off a pile does not turn over on the way, which is the
+   same rule that has drawing not flip; and going back to a card you have just finished
+   with is going back to look at its answer. Pressing f turns it over to the question
+   again. The card going the other way unflips for the same reason: the draw pile holds
+   cards front-up, so putting one back is exactly the turn that discarding it made. */
+function revertCard() {
+  if (busy || !used.length) return;
+  busy = true;
+
+  const box = card.getBoundingClientRect();
+  const outgoing = current;
+  const incoming = used.pop();
+  const wasFlipped = flipped;
+
+  if (reduced) {
+    if (outgoing >= 0) deck.unshift(outgoing);
+    current = incoming; setFlipped(true); paint(card, CARDS[current]); renderPiles();
+    busy = false;
+    return;
+  }
+
+  // 1 — the card in hand is turned back over onto the draw pile, landing front-up and on
+  // top, so the next draw deals it again
+  if (outgoing >= 0) {
+    const g = makeFlyer(box, outgoing);
+    const f = flight(box, drawPile.getBoundingClientRect());
+    g.animate([
+      { transform: P + `translate(0,0) scale(1) rotateY(${wasFlipped ? 180 : 0}deg)` },
+      { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s}) rotateY(0deg) rotate(-3deg)` },
+    ], { duration: 460, easing: "cubic-bezier(.4,0,.25,1)", fill: "forwards" })
+      .finished.then(() => {
+        g.remove();
+        deck.unshift(outgoing);     // the pile grows only once the card has landed
+        renderPiles();
+      }).catch(() => g.remove());
+  }
+
+  // 2 — and the last finished card slides back off the discard, still readings-up: it is
+  // already lying that way there, so the flight carries rotateY(180deg) throughout
+  setTimeout(() => {
+    current = incoming;
+    setFlipped(true);
+    paint(card, CARDS[current]);
+    card.classList.add("hidden");
+    renderPiles();                  // the discard loses its top card as that card leaves
+
+    const g = makeFlyer(box, incoming);
+    const f = flight(box, usedPile.getBoundingClientRect());
+    g.animate([
+      { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s}) rotateY(180deg) rotate(5deg)` },
+      { transform: P + "translate(0,0) scale(1) rotateY(180deg) rotate(0deg)" },
+    ], { duration: 520, easing: "cubic-bezier(.2,.86,.3,1)", fill: "forwards" })
+      .finished.then(() => {
+        g.remove();
+        card.classList.remove("hidden");
+        busy = false;
+      }).catch(() => { card.classList.remove("hidden"); busy = false; });
+  }, 150);
+}
+
 function reshuffle() {
   if (busy || !used.length) return;
   busy = true;
@@ -286,11 +360,15 @@ function reshuffle() {
 }
 
 drawPile.addEventListener("click", drawCard);
+usedPile.addEventListener("click", revertCard);
 card.addEventListener("click", () => setFlipped(!flipped));
 addEventListener("keydown", e => {
   if (chooser.hidden === false) return;
   if (e.key === "f" || e.key === "F") { e.preventDefault(); return setFlipped(!flipped); }
-  if (e.target === card || e.target === drawPile) return;
+  if (e.key === "z" || e.key === "Z") { e.preventDefault(); return revertCard(); }
+  // a pile that has focus is activated by the browser itself, so space must not fall
+  // through to a draw as well
+  if (e.target === card || e.target === drawPile || e.target === usedPile) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); drawCard(); }
 });
 
