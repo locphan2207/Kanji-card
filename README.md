@@ -102,7 +102,29 @@ front-up (unstudied), the discard holds them readings-up (finished). So drawing 
 flip, and discarding does — turning the card over is the act of finishing with it.
 
 **Flight paths are measured at runtime**, centre-to-centre between the card's box and the
-pile's box, so they stay correct at any viewport and would survive moving the piles.
+pile's box, so they stay correct at any viewport and would survive moving the piles. A
+flyer is always built at the size of where it *lands* and animated back from where it came
+— a flight that finishes on its target's own box cannot land crooked however the viewport
+is sized.
+
+**Picking a deck deals it.** The lid lifts off the box where the box is standing, the
+table fades up in the chooser's place, and the deck that was inside flies over: six cards
+stack up as the pile, and one carries on to the stage. The two overlap rather than queue.
+Dealing the pile first and the stage card after was the obvious order and it left the top
+two-thirds of the screen empty for the length of the deal, which reads as a broken layout
+rather than as a deal.
+
+The cards in flight are real cards — `makeFlyer` paints them with the same code the pile
+and the table use — and they are the actual indices from the top of the shuffled deck, so
+the card you watch land is the card sitting there when it stops. That is also why they are
+dealt back to front: `deck[0]` is the pile's top card, so it has to be the last one down.
+Six, because the pile is five layers deep and a sixth reads as "and the rest".
+
+The pile and the stage card are held hidden and revealed underneath the flyers that land
+on them. Since a flyer finishes on exactly the box the real thing occupies, the swap has
+nothing to show. `busy` is held for the length of it, so the pile cannot be drawn from
+before it has arrived, and `prefers-reduced-motion` skips the whole thing — the table is
+simply there.
 
 **Reading classification.** Each compound is tagged `on` / `kun` / `irr` by checking
 whether its reading contains one of the kanji's readings, allowing for rendaku

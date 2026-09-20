@@ -136,6 +136,11 @@ body{
   --card-w:min(94vw,680px); --pile-w:calc(var(--card-w) * .4);
   display:flex; flex-direction:column; align-items:center; gap:26px;
 }
+/* The chooser is replaced in one frame, so without this the deal starts on a hard cut
+   from a shelf of boxes to a bare table. Fading the table up under the cards already in
+   flight makes the box the thing they came out of. */
+.table.dealing{animation:dealin .3s ease both}
+@keyframes dealin{from{opacity:0} to{opacity:1}}
 .stage{position:relative; width:var(--card-w)}
 /* perspective on .dealer so the flip still reads as 3D while .dealer carries the flight */
 .dealer{perspective:1700px; position:relative; z-index:1}
@@ -605,8 +610,12 @@ body{
 
 .groups.busy .box{cursor:progress}
 .groups.busy .slot:not(.loading) .box{opacity:.45}
-/* picking a deck takes the box off the table */
-.slot.loading .box{transform:translateY(-118%) rotate(-3deg); opacity:0}
+/* Picking a deck opens the box rather than removing it: the top lifts off along the axis
+   the box recedes on, and the deck that was inside is what carries on to the table —
+   dealFromBox in app.js flies it from here to the pile. The box itself never goes
+   anywhere; the chooser it is standing in is simply replaced once the lid is off. */
+.bx-top{transition:transform .26s cubic-bezier(.3,.75,.35,1), opacity .26s}
+.slot.loading .bx-top{transform:translate(-5cqw,-11cqw) skewX(45deg); opacity:0}
 /* ---- the chooser at phone width ----
    Two changes, and the second is the one that matters. The name column goes, because
    74px of it out of 343 is a quarter of the screen spent on three characters. And the

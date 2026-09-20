@@ -355,6 +355,70 @@ function deal(cards, meta) {
   card.focus();
 }
 
+/* Opening a box. The lid comes off where the box is standing, the table takes its place,
+   and the deck it held flies over: most of it stacks up as the pile it will be drawn
+   from, and one card carries on to the stage. They overlap rather than queue, because
+   dealing the pile first left the top two-thirds of the screen empty for the length of
+   it, which reads as a broken layout rather than as a deal.
+
+   The cards in flight are real cards. makeFlyer paints them with the same code the pile
+   and the table use, and they are the actual indices at the top of the shuffled deck, so
+   the card you watch land is the card that is there when it stops. Six of them, because
+   the pile is five layers deep and a sixth reads as "and the rest".
+
+   The flyers are sized to the pile and animated from the box rather than the other way
+   round: the pile is where they finish, and a flight that ends on its target's exact box
+   cannot land crooked however the viewport is sized. */
+const DEAL_N = 6;
+
+/* One flight: a real card, sized to where it lands and animated back from where it came,
+   because a flight that ends on its target's own box cannot land crooked however the
+   viewport is sized. */
+function fly(dest, f, idx, lean, duration, delay) {
+  const g = makeFlyer(dest, idx);
+  return g.animate([
+    { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s}) rotate(${lean}deg)`,
+      opacity: 0 },
+    { opacity: 1, offset: .2 },
+    { transform: P + "translate(0,0) scale(1) rotate(0deg)", opacity: 1 },
+  ], { duration, delay, easing: "cubic-bezier(.22,.72,.3,1)", fill: "forwards" })
+    .finished.catch(() => {}).finally(() => g.remove());
+}
+
+function dealFromBox(cards, meta, from) {
+  deal(cards, meta);
+  if (reduced) return;
+  busy = true;                      // no drawing out of a pile that has not landed yet
+
+  const pileBox = drawPile.getBoundingClientRect();
+  const cardBox = card.getBoundingClientRect();
+  const stack = drawPile.querySelector(".stack");
+  // both are held back and revealed under the cards that land on them, so the swap is
+  // invisible: a flyer finishes on exactly the box the real thing occupies
+  stack.style.visibility = "hidden";
+  card.classList.add("hidden");
+  table.classList.add("dealing");
+
+  const toPile = flight(pileBox, from), toStage = flight(cardBox, from);
+  const n = Math.min(DEAL_N, deck.length);
+
+  // The deck stacks up as the pile, each card leaving the box at its own angle. Dealt
+  // back to front — deck[0] is the pile's top card, so it has to be the last one down,
+  // or the card you watched land is not the card sitting there when it stops.
+  const piled = Promise.all(Array.from({ length: n },
+    (_, i) => fly(pileBox, toPile, deck[n - 1 - i], -7 + i * 2.4, 430, i * 60)));
+  // and one is dealt to the middle while the rest are still landing, so the stage is not
+  // an empty two-thirds of the screen for the length of the deal
+  const dealt = fly(cardBox, toStage, current, -4, 520, 120);
+
+  piled.finally(() => { stack.style.visibility = ""; });
+  dealt.finally(() => { card.classList.remove("hidden"); });
+  Promise.all([piled, dealt]).finally(() => {
+    table.classList.remove("dealing");
+    busy = false;
+  });
+}
+
 /* A deck is a box of cards, so it is drawn as one. Every box is the same size and
    only the printing differs: a 和柄 ground per script over which the drill workbook's
    block of type sits on a pasted label. The ground says which of the three series a
@@ -409,8 +473,13 @@ function deckBox(d, vol) {
     note.textContent = held(d) ? "" : "shuffling the deck…";
     // A deck already in hand resolves in the same tick, which would cut the lid off
     // mid-flight. Hold the table back until the box has actually opened.
+    // where the box is standing, caught before the chooser gives way to the table
+    const from = b.querySelector(".bx-face").getBoundingClientRect();
     Promise.all([loadCards(d), settle(reduced ? 0 : 240)])
-      .then(([cards]) => { groupList.classList.remove("busy"); deal(cards, d); })
+      .then(([cards]) => {
+        groupList.classList.remove("busy");
+        dealFromBox(cards, d, from);
+      })
       .catch(err => {
         groupList.classList.remove("busy");
         slot.classList.remove("loading");
