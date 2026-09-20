@@ -119,31 +119,32 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
-of cards comes in a box, so it is drawn as one — and drawn as *two pieces of board*,
-because that is what says container. A lid sits in a tray. The tray is wider than the lid
-and starts below its top edge, so it shows as a margin down both sides and along the foot,
-with the lid dropping a shadow into it. The tuck flap folded over the top of the lid —
-tinted, with a hairline and a sliver of cast shadow at its edge — does the rest.
+of cards comes in a box, so it is drawn as one — as the box a deck of cards actually
+comes in, which is a tuck carton: one rectangle of printed board, portrait, with the flap
+folded over the top. That proportion is doing most of the work. A playing card box is
+recognisable before you have read anything on it, and nothing else about the drawing has
+to argue that this is a box once the shape has said so.
 
-The tray replaced a single sliver along the bottom that was printed with a repeating 1.5px
-rule, and that rule was the bug: a stack of evenly spaced cut edges is the picture of *a
-pile of cards*, which is precisely the thing a box is not. The detail meant to say "this
-is a box" was the one saying "this is a stack". A thumb notch was tried and taken off too
-— the right detail on a real box, but it took a bite out of every label.
+Two earlier attempts got that wrong in opposite directions. The first drew a landscape
+panel with a sliver along its foot, and printed the sliver with a repeating 1.5px rule to
+suggest depth — but evenly spaced cut edges are the picture of *a pile of cards*, so the
+one detail meant to say "box" was the detail saying "stack". The second replaced it with a
+lid sitting in a tray, visible as a margin down both sides; that reads as a container, but
+the container it reads as is a gift box, not a card box. Neither had the shape right, and
+the shape was the whole problem. A thumb notch was tried and taken off as well — the right
+detail on a real box, but it took a bite out of every label.
 
-The tray carries no printing, because a telescoping box is printed on its lid and the tray
-under it is plain board. That is also what makes picking a deck read correctly: the lid
-flies off and leaves the open tray behind rather than a hole, and the inset shadow along
-the tray's top edge — invisible until that moment — is the inside of the box.
+So the box is one piece now. The flap is a shallow band across the top with its crease and
+a sliver of cast shadow; the 和柄 ground is printed over the whole front; the workbook's
+label is pasted at the middle, at the height its type was set for rather than stretched to
+the new format; and the 印 is stamped in the corner beside the series line. Nothing is
+tilted and nothing is a 3D context, so a hover is one `translateY` on the compositor and no
+script runs at all.
 
-Nothing is tilted and nothing is a 3D context, so a hover is one `translateY` on the
-compositor and no script runs at all.
-
-Insetting the lid cost the label 3.4cqw of width, and `第993–2136番 全1144枚` is the widest
-foot there is — it came within a hair of colliding. The label's side margins give back
-exactly what the inset took, so it is the same width on the slot it always was. Everything
-else printed on the lid is measured from the lid and moves with it, which is right,
-because the lid is the thing being printed.
+The cost is on a phone, where sixteen portrait boxes two to a row is about half again as
+much scrolling as sixteen landscape ones. Three to a row would fix that and was tried:
+at 111px a box's foot line sets at under 6px, which is not a line of type any more. Two
+it is.
 
 **What is printed on a box is the deck's own data.** A 和柄 ground says which of the three
 series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for

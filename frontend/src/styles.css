@@ -441,11 +441,11 @@ body{
    second is the first, larger, rather than the same small box with the type left behind
    at the size it was set for a mouse. */
 .slot{
-  position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
+  position:relative; width:132px; aspect-ratio:132/184; flex:0 0 auto;
   container-type:inline-size;
 }
 .box{
-  position:absolute; left:0; top:0; width:100%; height:79.55cqw;
+  position:absolute; left:0; top:0; width:100%; height:135cqw;
   background:none; border:none; padding:0; cursor:pointer; color:inherit;
   -webkit-tap-highlight-color:transparent;
   transform:translateY(0); transition:transform .17s cubic-bezier(.2,.86,.3,1);
@@ -457,17 +457,14 @@ body{
 }
 .box:active{transform:translateY(-1.5cqw); transition-duration:.07s}
 .box:focus-visible{outline:none}
-.box:focus-visible .bx-lid{outline:2px solid var(--ink); outline-offset:3px}
+.box:focus-visible .bx-face{outline:2px solid var(--ink); outline-offset:3px}
 
-.bx-lid{
-  position:absolute; left:1.7cqw; top:0; width:calc(100% - 3.4cqw); height:74.05cqw;
-  z-index:1;
-  border-radius:2.3cqw 2.3cqw 1.5cqw 1.5cqw; overflow:hidden;
+.bx-face{
+  position:absolute; left:0; top:0; width:100%; height:135cqw;
+  border-radius:1.5cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
   border:1px solid var(--edge);
-  /* the last shadow is the one the lid drops into the tray it is sitting in */
-  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6),
-             0 .55cqw .7cqw -.25cqw rgba(40,32,18,.5);
+  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.55);
   font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
   transition:transform .32s cubic-bezier(.4,0,.6,1), opacity .32s;
 }
@@ -476,33 +473,16 @@ body{
    unlike a thumb notch it crosses the printing the way a real flap does rather
    than cutting a hole in it. */
 .bx-flap{
-  position:absolute; left:0; right:0; top:0; height:23%; z-index:3; pointer-events:none;
+  position:absolute; left:0; right:0; top:0; height:11%; z-index:3; pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.014) 66%,transparent);
   border-bottom:1px solid var(--rule-soft);
   box-shadow:0 1px 0 rgba(255,255,255,.72), 0 4px 5px -4px rgba(40,32,18,.55);
 }
-/* The tray the lid sits in — the half of the box that holds the cards. It is wider
-   than the lid and starts below its top edge, so it shows as a margin down both sides
-   and along the foot: two pieces of board, one set into the other, which is what says
-   container. It used to be a single sliver along the bottom printed with a repeating
-   1.5px rule, and that was the bug — a stack of evenly spaced cut edges is the picture
-   of a pile of cards, which is exactly the thing a box is not.
 
-   It carries no printing. A telescoping box is printed on its lid, and the tray under
-   it is plain board; that is also what makes picking a deck read correctly, because the
-   lid flies off and leaves the open tray behind rather than a hole. The inset shadow at
-   its top is the inside of the box, invisible until that moment. */
-.bx-depth{
-  position:absolute; left:0; right:0; top:2.4cqw; height:77.15cqw; z-index:0;
-  border:1px solid var(--edge); border-radius:2.6cqw;
-  background-color:var(--stock);
-  background-image:linear-gradient(157deg,rgba(0,0,0,.17),rgba(0,0,0,.05) 40%,rgba(0,0,0,.2));
-  box-shadow:inset 0 .9cqw 1.1cqw -.55cqw rgba(40,32,18,.5);
-}
 /* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
    it moves, a gradient is painted once and then only scaled and faded. */
 .bx-shade{
-  position:absolute; left:-8%; width:116%; height:18.2cqw; bottom:1.5cqw;
+  position:absolute; left:-8%; width:116%; height:14cqw; bottom:1.5cqw;
   background:radial-gradient(50% 50% at 50% 50%,var(--box-shade),transparent 70%);
   transform:scaleX(.9) scaleY(.6); opacity:.9; transform-origin:50% 35%;
   transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .17s;
@@ -549,14 +529,14 @@ body{
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
 }
 .bx-series{
-  position:absolute; left:8.33cqw; top:6.8cqw; z-index:2;
-  font-size:5.7cqw; letter-spacing:.16em; color:var(--ink-2);
+  position:absolute; left:8.33cqw; top:19cqw; z-index:2;
+  font-size:5.2cqw; letter-spacing:.16em; color:var(--ink-2);
 }
 /* The label is a slip of paper pasted onto the box, not part of the box, so it is
    printed on the plain stock while the ground around it carries the series' tint. That
    is also what keeps every deck name black on cream: the colour never gets under type. */
 .bx-plate{
-  position:absolute; left:8.15cqw; right:8.15cqw; top:33%; bottom:6.06cqw; z-index:2;
+  position:absolute; left:9.85cqw; right:9.85cqw; top:36%; bottom:30.5%; z-index:2;
   background:linear-gradient(180deg,var(--paper),var(--paper-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */
@@ -582,7 +562,7 @@ body{
 }
 /* 印 - the volume numeral, stamped. The only colour in the whole app, and only here. */
 .bx-seal{
-  position:absolute; right:5.3cqw; top:5.3cqw; z-index:5;
+  position:absolute; right:6.4cqw; top:18.2cqw; z-index:5;
   width:11.4cqw; height:11.4cqw; display:grid; place-items:center;
   border:.9cqw solid var(--shu); border-radius:1.14cqw;
   color:var(--shu); font-size:7.2cqw; line-height:1; opacity:.92;
@@ -590,8 +570,8 @@ body{
 
 .groups.busy .box{cursor:progress}
 .groups.busy .slot:not(.loading) .box{opacity:.45}
-/* picking a deck takes the lid off it */
-.slot.loading .bx-lid{transform:translateY(-118%) rotate(-3deg); opacity:0}
+/* picking a deck takes the box off the table */
+.slot.loading .bx-face{transform:translateY(-118%) rotate(-3deg); opacity:0}
 /* ---- the chooser at phone width ----
    Two changes, and the second is the one that matters. The name column goes, because
    74px of it out of 343 is a quarter of the screen spent on three characters. And the
@@ -628,7 +608,6 @@ body{
 }
 .relevel:hover{opacity:.9}
 .relevel:focus-visible{outline:2px solid var(--ink); outline-offset:3px; opacity:.9}
-
 
 /* ============ the kana card ============
    Same stock, same practice strip, same shadow as a kanji card — it is the same physical

@@ -388,7 +388,7 @@ function deckBox(d, vol) {
     `${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
     `numbers ${d.lo} to ${d.hi}`);
   b.innerHTML =
-    `<span class="bx-lid">
+    `<span class="bx-face">
        <span class="bx-pat"></span>
        <span class="bx-series">${d.group}ドリル</span>
        <span class="bx-plate">
@@ -398,8 +398,7 @@ function deckBox(d, vol) {
        </span>
        <span class="bx-flap"></span>
        <span class="bx-seal">${seal}</span>
-     </span>
-     <span class="bx-depth"></span>`;
+     </span>`;
 
   b.addEventListener("click", () => {
     if (groupList.classList.contains("busy")) return;
