@@ -236,9 +236,24 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
 of cards comes in a box, so it is drawn as one — as a solid, not as a picture of one.
-The printed front, the top and the left wall, in cabinet projection, at the footprint the
-flat drawing always had: the front gives up exactly the projected depth in width and
-height, so a box occupies its slot the way it did before it had volume.
+The printed front, the top and the left wall, in cabinet projection, across the slot's
+full width: the front gives up the projected depth in width and in height, so the solid
+occupies the footprint the flat drawing always had.
+
+**A box is cut to the cards in it.** The card is 1.38 wide to 1 tall, off the reference
+photo, and that number is now stated once, as `--card-ar`, for the card, the two piles, a
+pile's top card and the box on the chooser. The box had drifted: its printed front was
+1.371 and the whole solid 1.339, which is a box holding cards that do not fit it, and it
+showed on the one frame where the two screens are the same object — a deal sets off from
+the box's own front, and a flyer that is scaled to that front's width does not cover it
+unless the two are the same shape. The front is the card's shape exactly now, and so is the
+silhouette, which takes the depth receding on that ratio too: `--bx-d` across and
+`--bx-d / 1.38` up, an axis at 36° rather than 45°. The axis is what gives, because
+nothing else can: adding the same depth to the width and to the height always leaves the
+solid squarer than its front, so at 45° one of the two has to be off, and 36° is an
+ordinary angle to draw an oblique at. The walls' shears follow from it — `atan(1.38)` and
+`atan(1/1.38)` — and the lid lifts off carrying the top's own shear, so it keeps its shape
+on the way up.
 
 It recedes up and to the left because that is the direction the deck recedes on the table.
 The piles stack their layers up-left, so a pile shows its card edges along its top and
@@ -416,7 +431,9 @@ from blue to green.
 
 **A box is measured against its own width, like the card.** Every position printed on a
 box is in `cqw` against the slot — 132px wide is 100cqw, so 11px of margin is 8.33cqw and
-the ground's tile scales with it too. This is what lets the chooser be laid out for a
+the ground's tile scales with it too. The box's own geometry is measured that way as well,
+off `--bx-d` and `--card-ar`, so a box is the card's proportion at every width it is
+printed at rather than at the one it was drawn at. This is what lets the chooser be laid out for a
 phone by changing nothing but how wide a box is. Under 560px the name column goes, since
 74px of a 343px screen is a quarter of it spent on three characters, and the row stops
 being a queue of 132px boxes with the leftover width sitting beside them: the boxes divide
