@@ -904,7 +904,12 @@ paintLamp();
    which is what `still()` being asked per move rather than once at load buys.
 
    The face is 動 / 静 beside the lamp's 昼 / 夜, and like the lamp it offers the table
-   you are not at rather than the one you are — 静 STILL while the cards are flying. */
+   you are not at rather than the one you are — 静 NO MOTION while the cards are flying.
+   The two words are a pair on purpose. STILL was here first and was the wrong word: in
+   English it is an adverb before it is an adjective, so STILL next to a deck of cards
+   reads as "still going" at least as readily as "motionless" — and on a page teaching
+   its reader to read, a label they have to work out is a label that has failed. NO
+   MOTION cannot be read as anything but the other half of MOTION. */
 const MOTION_KEY = "drill-card:motion";
 const motion = $("motion");
 
@@ -917,7 +922,7 @@ function motionNow() {
 function paintMotion() {
   const other = motionNow() === "none" ? "full" : "none";
   $("motionMark").textContent = other === "none" ? "静" : "動";
-  $("motionName").textContent = other === "none" ? "still" : "motion";
+  $("motionName").textContent = other === "none" ? "no motion" : "motion";
   motion.setAttribute("aria-label", other === "none"
     ? "Turn the card animations off. Cards change without being dealt."
     : "Turn the card animations on. Cards are dealt across the table.");

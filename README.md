@@ -533,9 +533,18 @@ it empties. Only the theatre goes.
 The two switches are one class, `.sw`, because they are one object in two jobs — same
 size, same face, same tracking — and the pair reads as a row of switches rather than as
 two controls that happen to be adjacent. The lamp keeps the corner it has always had and
-the new one is set to its left, 動 MOTION and 静 STILL beside the lamp's 昼 and 夜 —
+the new one is set to its left, 動 MOTION and 静 NO MOTION beside the lamp's 昼 and 夜 —
 each offering the state you are not in, the kanji and the word for it together the way a
 pile carries both 済 and 済み.
+
+The pair was 静 STILL and 動 MOTION for about as long as it took to look at it. STILL is
+an adverb before it is an adjective, and beside a deck of cards it reads as "still going"
+at least as readily as "motionless" — one word doing the opposite of the job. The fix is
+not a cleverer word but a matched one: NO MOTION cannot be read as anything except the
+other half of MOTION, and a reader who has pressed it once never has to think about
+either again. It costs 21px of a button that nothing is lined up against — the row is
+`flex-end`, so the lamp stays in its corner and only the left edge of the button under
+the cursor moves.
 
 ## The kana card
 
