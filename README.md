@@ -120,9 +120,14 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
 of cards comes in a box, so it is drawn as one — as a solid, not as a picture of one.
-The printed front, the top and the right wall, in cabinet projection, at the footprint the
+The printed front, the top and the left wall, in cabinet projection, at the footprint the
 flat drawing always had: the front gives up exactly the projected depth in width and
 height, so a box occupies its slot the way it did before it had volume.
+
+It recedes up and to the left because that is the direction the deck recedes on the table.
+The piles stack their layers up-left, so a pile shows its card edges along its top and
+left; a box that showed its depth on the right would be the same object turned two
+different ways on two screens.
 
 **The walls are 2D skews, and that is the whole reason this is usable.** Rotating the
 front in 3D was tried first and it is the obvious way to build a box: `preserve-3d` on the

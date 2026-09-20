@@ -462,10 +462,15 @@ body{
 .box:focus-visible .bx-face{outline:2px solid var(--ink); outline-offset:3px}
 
 /* ---- the box as a solid ----
-   A card box is a box, so it is drawn as one: the printed front, the top, and the right
+   A card box is a box, so it is drawn as one: the printed front, the top, and the left
    wall, in cabinet projection. --bx-d is the projected depth, and the front gives up
    exactly that much width and height, so the whole solid still occupies the footprint
    the flat drawing had.
+
+   It recedes up and to the left because that is the direction the deck recedes on the
+   table: the piles stack their layers up-left, so a pile shows its card edges along its
+   top and left. A box that showed them on the right would be the same object turned two
+   different ways on two screens.
 
    The two walls are 2D skews, not 3D rotations, and that is the whole reason this is
    usable. Rotating the front in 3D was tried first and it is the obvious way to do it —
@@ -475,7 +480,7 @@ body{
    true before: no perspective, no 3D context, no compositing layer per box, and a hover
    that is still one translate. */
 .bx-face{
-  position:absolute; left:0; top:var(--bx-d); width:calc(100% - var(--bx-d));
+  position:absolute; left:var(--bx-d); top:var(--bx-d); width:calc(100% - var(--bx-d));
   height:68.18cqw;
   container-type:inline-size;   /* the printing is measured against the front, not the slot */
   border-radius:.8cqw; overflow:hidden;
@@ -485,18 +490,18 @@ body{
   font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
 }
 .bx-top,.bx-side{position:absolute; border:1px solid var(--edge); background-color:var(--stock)}
-/* the top, sheared back and to the right off the front's top edge */
+/* the top, sheared back and to the left off the front's top edge */
 .bx-top{
-  left:0; top:0; width:calc(100% - var(--bx-d)); height:var(--bx-d);
-  transform-origin:0% 100%; transform:skewX(-45deg);
+  left:var(--bx-d); top:0; width:calc(100% - var(--bx-d)); height:var(--bx-d);
+  transform-origin:0% 100%; transform:skewX(45deg);
   background-image:linear-gradient(to top,rgba(255,255,255,.34),rgba(255,255,255,.06));
 }
-/* the right wall, sheared to meet it. Shaded warm rather than with neutral black, so a
+/* the left wall, sheared to meet it. Shaded warm rather than with neutral black, so a
    turned-away face is the same box in shadow and not a grey one. */
 .bx-side{
-  left:calc(100% - var(--bx-d)); top:var(--bx-d); width:var(--bx-d); height:68.18cqw;
-  transform-origin:0% 0%; transform:skewY(-45deg);
-  background-image:linear-gradient(to right,rgba(58,42,18,.15),rgba(58,42,18,.33));
+  left:0; top:var(--bx-d); width:var(--bx-d); height:68.18cqw;
+  transform-origin:100% 0%; transform:skewY(45deg);
+  background-image:linear-gradient(to left,rgba(58,42,18,.15),rgba(58,42,18,.33));
 }
 /* the tuck flap: a second thickness of card folded over the top. Tinting it and
    giving its edge a hairline plus a sliver of cast shadow is the whole trick, and
