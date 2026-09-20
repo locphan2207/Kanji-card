@@ -172,7 +172,7 @@ back. The packets falling *alternately* — deepest card of one, then deepest of
 is what makes it a riffle rather than two halves rejoining, which is a cut. Two passes,
 mirrored, because nobody shuffles a deck once.
 
-What five cream rectangles 1.5px apart do not have is texture, so the separation is the
+What five flat rectangles 1.5px apart do not have is texture, so the separation is the
 only signal there is and it has to be taken: the packets part by a fifth of the pile's
 width, far enough to read as two objects and not so far that the pile stops being one.
 The layers keep their own stacking offsets underneath — `composite:"add"` lays the riffle
@@ -303,33 +303,103 @@ mixing the ink into the paper instead made each deck's card as much darker as it
 happened to be, which is a difference nobody chose. Everything else is mixed from those
 two, so a series is two lines of CSS and the rest follows.
 
-**A box is the coloured object. A card is not.** The box is packaging: seen once, from
-across a grid of sixteen, at 132px, and it can afford to be printed on coloured stock.
-The card is read for minutes at a time, and the same wash across the whole of it turned
-the paper into a surface with a colour on it rather than into paper. So the card keeps
-the cream it always had, and the series shows **on its edge** — which is where a deck
-shows its colour anyway. A stack of cards presents its edges and nothing else.
+**A card is printed on the stock its box is, at 40% of the weight.** The box no longer
+owns the colour; the series does, and a card that comes out of an indigo box is an
+indigo card. But a box and a card are not the same object, so the wash is not applied at
+the same strength to both. A box is packaging, seen once from across a grid of sixteen
+at 132px, and the wash at full strength is what carries the series across that screen. A
+card is read for minutes at a time, and the same wash, once it is the page rather than
+the cover, stops being a stock with a colour and becomes a coloured surface. So
+`[data-cat]` states the card's stock at 40% and `[data-cat] .slot` restates the box's at
+82%, and the card, the pile layers and the card in flight all take the first from one
+place.
 
-That last part is not a metaphor here. The piles are built from real offset layers, one
-per card, so colouring the edge makes the draw pile and the discard come out striped in
-the series' colour with nothing drawn for them — the deck shows what it is the same way
-a physical deck does, by being stacked. It is the best argument for the edge over the
-alternatives that were tried: a tinted practice strip (which read as a highlighted row
-and cost the tracing ghost its contrast), a band across the head or a bled edge down the
-spine (both of which read as interface rather than as print), and a corner index (which
-collides with the big character on both backs).
+40% is where three things are true at once: the stock still says plainly which deck this
+is, the black type keeps its bite, and — the one that actually fixes the number — the
+head band stays clear of the card it is printed on. The band is mixed from `--wash`
+rather than from `--stock`, so its colour does not move when the wash does; the stronger
+the card's wash, the less of a band the band is. At 82% it stood about 24 points of
+luminance off the card, which is the same step the tracing ghost has; at 40% it stands
+38 apart and reads as printing again.
 
-So on a card the colour lands on the rim, the hairlines and the tracing ghost, and
-nowhere as a field. This is the strictest form of the rule the whole scheme runs on:
-**colour appears only where a grey already was.** The rim was a 1px `--edge`, the rules
-were `--rule` and `--rule-soft`, the ghost was `--ghost` — all of them neutral greys, all
-of them tinted ones now, and not one new element on the card. The desk keeps out of it
-too, because the desk is the room the cards are in, not one of them.
+It was cream first, and the argument for that was a good one — the one restated above,
+that a page read for minutes should not be a colour. So the card kept its cream and the
+series showed **on its edge**: a stack of cards presents its edges and nothing else, and
+the piles here are built from real offset layers, so colouring the edge made the draw
+pile and the discard come out striped in the series' colour with nothing drawn for them.
 
-The rim is stated in `cqw` like everything else, so it is the same drawing at any size.
-It eats into the face's content box, which shrinks every `cqw` measurement inside it by
-about 0.85% — the whole card, uniformly. That is the rim being the edge of the stock
-rather than a frame drawn on top of it.
+What that misses is that a card is only ever looked at inside the deck it belongs to.
+You pick one box, and from then on every card on the table is from it, so a cream card
+was not standing next to anything for its cream to be read against — the colour had one
+job left, which was to be noticed, and an edge thick enough to be noticed (`.4cqw`, so
+that it read as the cut edge of coloured card rather than as a keyline) is a frame
+round the page. A frame is the one thing on a card that is always in your eye and never
+what you are reading. The wash is the opposite: it is everywhere, and so nowhere in
+particular — and, held to 40%, it is a tinted paper rather than a colour. The rim went
+back to the 1px hairline the box's own front has, and the piles are still striped,
+because the layers are this stock now.
+
+Cream with the band alone was tried at this point too, and it is the one that looks
+wrong: a solid coloured strip across the top of a white rectangle with a number in the
+corner is the shape of an app's title bar, and that is what it reads as. A band is
+printing only when the card under it is already printed stock.
+
+The tracing ghost is the one grey a series does not touch, and that is the rule the
+scheme runs on now: **the colour is the stock and the printing on it, never the thing
+being read.** The ghost is a guide you draw over — the answer laid on the paper before
+you write it — so a tinted one read as a second ink competing with the stroke being
+taught, which was also what ruled out the tinted practice strip tried early on. It is
+`--ghost-0` in all three series. It did have to change once: it was mixed for cream, and
+a warm grey on an indigo card goes tan and on a celadon one goes pink, so it is near
+enough to neutral now to stay grey on any of the three, and 30 points of luminance
+darker to keep the same step under a stock that is no longer cream.
+
+**The band across the head is the box's own ground.** The other half of what the edge
+used to do was to say *which* deck, and the stock only says which of three. So the top
+of every face carries a strip of the 和柄 its box is printed with, on the wash pulled a
+step further towards the ink — and the tile steps through the volumes exactly as the
+box's does, so a 拗音 card is printed with the coarser wave the 拗音 box is. `deal()`
+sets `--ps` on `<body>` the way `deckBox()` sets it on a box, in the card's own `cqw`
+rather than the box's: what carries across is the step, not the number, because a card
+is five times the width of a box and each is measured against itself. The tile is kept
+under the band's height there, because a band is one course of a pattern and a tile
+taller than the band is a row of cropped halves rather than 鱗.
+
+A band was tried once before, when the card was still cream, and it read as a title bar
+rather than as print. Two things are different now. It is not a coloured bar on white —
+it is the same stock as the rest of the card, printed heavier, so the card has no edge
+inside it for a bar to have. And it carries the pattern rather than being a plain fill,
+which is what makes it a 和柄 border and not a header. The hairline under it is the rule
+at the head of a printed page. It is one element on each face, `aria-hidden`, holding no
+text: it is stock, not content. The head is also the one part of the stock every face
+already left empty — a ground behind the type would be a ground you read through, and
+青海波 behind 天気予報 is a texture in the way.
+
+**The band is the top of the card now, so the head margins are measured from it.** Every
+face was laid out against the stock's own edge, and dropping a 3.2cqw band on top of
+that left the four of them with wildly different head margins: 2.8cqw of clear stock on
+both fronts, where the first mark is the card number, but 1.0cqw on the kana back and
+0.49cqw on the kanji back, where the first mark is a display character that all but
+touched the band. The fix is the obvious one — move the header blocks down — and the
+only interesting part is where the room came from.
+
+The kana back had room below: its header, its rule and its body all drop 1.6cqw
+together, so the face keeps its proportions and only its head margin changes. That costs
+`.kn-body` 1.6cqw of the 3.95cqw the fullest card in either syllabary leaves it.
+
+The kanji back had none. 傲 (#2042) is the tightest card in the jōyō set and leaves
+`.bk-groups` 0.83cqw of slack, so the rule and the list under it cannot move at all
+without costing a compound its row — which means the 1.4cqw the header moves has to come
+out of the air above the rule. It ends up with about 1.8cqw of clear stock under the
+band and 1.2cqw above the rule, and that asymmetry is right rather than a compromise:
+the band is a solid and the rule is a hairline, so the heavier edge takes the wider gap.
+The kana front's glyph box moved for a different reason — it began 0.2cqw *under* the
+band, which was invisible, because the character is centred in a box far taller than it
+is, but a box the band overlaps is one bad font away from being clipped by it.
+
+A corner index was the other alternative, and it still collides with the big character
+on both backs. The desk keeps out of all of it, because the desk is the room the cards
+are in, not one of them.
 
 **The three grounds do not take the same amount of ink.** 青海波 is a field of thin arcs,
 鱗 is solid triangles that fill half the box, and 格子 is a grid of single pixels. Given

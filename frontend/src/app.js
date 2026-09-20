@@ -648,6 +648,12 @@ function deal(cards, meta) {
   // On <body> rather than on .table: the card in flight is appended to the body, so a
   // scope any tighter than this would have it change stock halfway to the pile.
   document.body.dataset.cat = GROUP_CAT[meta.group] || "";
+  // The tile of the 和柄 in the head band, stepping through the volumes exactly as the
+  // box's ground does — same series, same volume, same printing. It is the card's own
+  // cqw and not the box's, because a card is five times the width of a box and the two
+  // are each measured against themselves; what is carried across is the step, not the
+  // number. A box states its own --ps inline, so this one never reaches the chooser.
+  document.body.style.setProperty("--ps", `${(1.5 + (meta.vol || 0) * .28).toFixed(2)}cqw`);
   chooser.hidden = true; table.hidden = false; controls.hidden = false;
   card.focus();
 }
@@ -752,7 +758,7 @@ function deckBox(d, vol) {
   b.innerHTML =
     `<span class="bx-top"></span><span class="bx-side"></span>
      <span class="bx-face">
-       <span class="bx-pat"></span>
+       <span class="bx-pat wagara"></span>
        <span class="bx-series">${d.group}ドリル</span>
        <span class="bx-plate">
          <span class="${nm}">${d.label}</span>` +
@@ -792,7 +798,9 @@ function deckBox(d, vol) {
 
 function renderChooser() {
   chooser.hidden = false; table.hidden = true; controls.hidden = true;
-  delete document.body.dataset.cat;   // each row prints its own series from here on
+  // each row prints its own series from here on, and each box its own tile
+  delete document.body.dataset.cat;
+  document.body.style.removeProperty("--ps");
   note.textContent = "";
   groupList.innerHTML = "";
   const groups = [];
@@ -811,8 +819,10 @@ function renderChooser() {
       (GROUP_EN[g.name] ? `<span class="en">${GROUP_EN[g.name]}</span>` : "");
     const list = document.createElement("div");
     list.className = "levels";
-    // the index within a group is the volume number, and the step of its pattern
-    g.decks.forEach((d, vol) => list.appendChild(deckBox(d, vol)));
+    // The index within a group is the volume number, and the step of its pattern. It is
+    // written back onto the deck because the card wears the same ground its box does,
+    // and deal() is handed the deck rather than the box it was picked from.
+    g.decks.forEach((d, vol) => { d.vol = vol; list.appendChild(deckBox(d, vol)); });
     row.append(name, list);
     groupList.appendChild(row);
   });
