@@ -41,6 +41,11 @@ img{max-width:100%}
   --jp:"Klee One","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,sans-serif;
   --jp-bold:600; --glyph-edge:.235cqw;
   --latin:ui-sans-serif,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  /* The card's shape, off the reference photo: 1380x1000, so 1.38 wide to 1 tall. It is
+     stated once here because more than the card is cut to it — the two piles, a pile's
+     top card, and the box on the chooser, which is the box these cards come in and is
+     drawn at their proportion rather than near it. */
+  --card-ar:1.38;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -115,8 +120,8 @@ img{max-width:100%}
 }
 /* The box keeps the wash at full strength; the card takes it at 40%. They are the same
    colour at two weights, because they are not the same object: a box is packaging, seen
-   once from across a grid of sixteen at 132px, where the wash is what carries the series
-   across the screen. A card is read for minutes at a time, and the wash that reads as a
+   once from across a grid of sixteen, where the wash is what carries the series across
+   the screen. A card is read for minutes at a time, and the wash that reads as a
    printed cover reads as a coloured surface once it is the page. 40% is where the stock
    still says plainly which deck this is, the black type keeps its bite, and the band
    stays well clear of the card it is printed on. */
@@ -155,7 +160,7 @@ body{
    to a corner, because the card is min(94vw,680px) and a corner on a phone is the corner
    of the card. It costs a row at the top of the page and never lands on anything.
 
-   It sizes itself to the chooser's 960px and not to the table's 680px so that it does
+   It sizes itself to the chooser's 1248px and not to the table's 680px so that it does
    not move when a deck is picked: the two screens are different widths and the switch
    belongs to neither.
 
@@ -165,7 +170,7 @@ body{
    both 済 and 済み. The focus ring is currentColor and not --ink: --ink is the near-black
    the words on a card are printed in, and it is the same near-black in both rooms, which
    is invisible against a dark desk. */
-.room{display:flex; justify-content:flex-end; width:100%; max-width:960px}
+.room{display:flex; justify-content:flex-end; width:100%; max-width:1248px}
 .lamp{
   display:flex; align-items:center; gap:7px;
   font-family:var(--latin); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase;
@@ -209,7 +214,7 @@ body{
 /* ============ the table: draw pile, card, discard ============ */
 .piles{display:flex; justify-content:space-between; width:var(--card-w); gap:16px}
 .pile{
-  position:relative; width:var(--pile-w); aspect-ratio:1.38;
+  position:relative; width:var(--pile-w); aspect-ratio:var(--card-ar);
   background:none; border:none; padding:0; font:inherit; color:var(--ui);
   flex:none;
 }
@@ -259,7 +264,7 @@ body{
 /* a pile's top card is a full-size face scaled down, so its container queries still
    resolve against a real card width and the layout matches exactly */
 .mini{
-  position:absolute; top:0; left:0; width:var(--card-w); aspect-ratio:1.38;
+  position:absolute; top:0; left:0; width:var(--card-w); aspect-ratio:var(--card-ar);
   transform:scale(.4); transform-origin:top left; pointer-events:none;
   transition:opacity .15s ease;
 }
@@ -271,7 +276,7 @@ body{
 .card.hidden{visibility:hidden}
 
 .card{
-  position:relative; width:100%; aspect-ratio:1.38;
+  position:relative; width:100%; aspect-ratio:var(--card-ar);
   background:none; border:none; padding:0; cursor:pointer; display:block;
   transform-style:preserve-3d; transition:transform .55s cubic-bezier(.3,.85,.35,1);
 }
@@ -491,11 +496,15 @@ body{
    every box the same size, differing only in what is printed on the lid. */
 .chooser{display:flex; align-items:center; justify-content:center; padding:10px 0; width:100%}
 /* Wide enough for the longest row — カタカナ's six decks — to stay on one line:
-   74px of name column, then six 132px boxes and the gaps between them. Stated as a
-   maximum over a full width rather than left to shrink-to-fit: at phone width the boxes
-   divide the row between them, so what the row would be at its widest no longer says
-   anything about how wide the screen is. */
-.chooser-box{width:100%; max-width:960px; text-align:center}
+   74px of name column, then six 180px boxes and the gaps between them. Stated as a
+   maximum over a full width rather than left to shrink-to-fit: the boxes divide the row
+   between them, so what the row would be at its widest no longer says anything about how
+   wide the screen is.
+
+   It is 1248px and not more because of what is under it rather than what is beside it: a
+   180px box is a 142px row, and three of those plus the heading is the whole chooser on a
+   768px-tall laptop, which is the point — all sixteen boxes at once, without scrolling. */
+.chooser-box{width:100%; max-width:1248px; text-align:center}
 .chooser-kicker{
   font-family:var(--jp); font-size:15px; letter-spacing:.32em; margin:0 0 14px;
   color:var(--ui); opacity:.6;
@@ -509,11 +518,15 @@ body{
   opacity:.65; margin:0 auto 26px; max-width:40ch;
 }
 .groups{display:flex; flex-direction:column; gap:15px}
-.group{display:grid; grid-template-columns:74px 1fr; align-items:start; gap:14px}
+/* The name is centred against its row rather than set down from the top of it by a
+   fixed amount. It used to be 40px, which was the middle of a 104px-tall box and is
+   nothing in particular now that the box is a sixth of the row and its height comes
+   out of that. */
+.group{display:grid; grid-template-columns:74px 1fr; align-items:center; gap:14px}
 .group-name{
   display:flex; flex-direction:column; align-items:flex-end; gap:4px;
   font-family:var(--jp); font-size:12px; letter-spacing:.18em; text-align:right;
-  color:var(--ui); opacity:.6; padding-top:40px;
+  color:var(--ui); opacity:.6;
 }
 /* The category in English, set the way the romaji on a box is set — the script's name
    is the one word on this screen a reader who cannot yet read the screen needs. */
@@ -534,18 +547,38 @@ body{
    per box - so a hover is one transform on the compositor and no script at all.
 
    Every measurement printed on a box below is in cqw against the slot, the way the card
-   is measured against its own width: 132px wide is 100cqw, so 11px of margin is 8.33cqw
-   and the whole box is one drawing that can be printed at any size. It is 132px on a
-   desktop, where six fit a row, and half the screen on a phone, where two do - and the
-   second is the first, larger, rather than the same small box with the type left behind
-   at the size it was set for a mouse. */
+   is measured against its own width: the slot is 100cqw, so 11px of margin on a 132px box
+   is 8.33cqw and the whole box is one drawing that can be printed at any size. It is a
+   sixth of the row on a desktop, where six fit a line, and half the screen on a phone,
+   where two do - and the second is the first, larger, rather than the same small box with
+   the type left behind at the size it was set for a mouse.
+
+   The width is divided out of the row rather than fixed at 132px, which is what it used
+   to be and what the 和柄 and the block of type were set against. 132px is a box you can
+   see and a label you cannot read: 第1–46番 came out at 6.4px. Six to a row, so the box
+   is a sixth of the row's width and the five 16px gaps come off first — 180px at the
+   chooser's full 1248px, and everything printed on it 36% larger with it. The 132px floor
+   is what it was: below about a 1000px screen six no longer fit a line at that size and
+   the row wraps, exactly as it did, rather than the boxes shrinking to keep one line. */
 .slot{
-  --bx-d:6.5cqw;                /* the projected depth of the box */
-  position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
+  /* The projected depth: --bx-d across, and that over the card's ratio up. Receding on
+     the ratio is what lets the whole solid stand at the card's shape as well as its
+     printed front — the front is (100cqw − 6.5) over (100cqw − 6.5) / 1.38, and the
+     depth adds 6.5 and 6.5/1.38 back to them, so both come out at 1.38. */
+  --bx-d:6.5cqw; --bx-dy:calc(var(--bx-d) / var(--card-ar));
+  /* the printed front's height: the card's shape, since that is the face they come out of */
+  --bx-fh:calc((100cqw - var(--bx-d)) / var(--card-ar));
+  position:relative; width:max(132px,calc((100% - 80px) / 6)); flex:0 0 auto;
+  /* the solid — 100cqw over 100cqw / 1.38 — plus 6.38cqw under its foot, which is where
+     the shadow it lifts away from lies */
+  aspect-ratio:calc(100 / (100 / var(--card-ar) + 6.38));
   container-type:inline-size;
 }
 .box{
-  position:absolute; left:0; top:0; width:100%; height:78.18cqw;
+  position:absolute; left:0; top:0; width:100%;
+  /* the solid, and 3.5cqw of the shadow's ground under it, so the press is taken on a
+     little more than the drawing */
+  height:calc(var(--bx-dy) + var(--bx-fh) + 3.5cqw);
   background:none; border:none; padding:0; cursor:pointer; color:inherit;
   -webkit-tap-highlight-color:transparent;
   transform:translateY(0);
@@ -562,9 +595,11 @@ body{
 
 /* ---- the box as a solid ----
    A card box is a box, so it is drawn as one: the printed front, the top, and the left
-   wall, in cabinet projection. --bx-d is the projected depth, and the front gives up
-   exactly that much width and height, so the whole solid still occupies the footprint
-   the flat drawing had.
+   wall, in cabinet projection. The front gives up the projected depth in width and in
+   height — --bx-d across, --bx-dy up — so the whole solid still occupies the slot's
+   full width, and both the front and the silhouette come out at the card's 1.38. A box
+   holds these cards, so its face is cut to them, and the depth recedes on that ratio
+   too rather than at 45°, which would leave the solid squarer than what is inside it.
 
    It recedes up and to the left because that is the direction the deck recedes on the
    table: the piles stack their layers up-left, so a pile shows its card edges along its
@@ -573,14 +608,14 @@ body{
 
    The two walls are 2D skews, not 3D rotations, and that is the whole reason this is
    usable. Rotating the front in 3D was tried first and it is the obvious way to do it —
-   but a 3D-transformed element is rasterised once and resampled, and at 132px 漢字ドリル
-   and 第993–2136番 came out as mush. Skewing only the walls leaves the front untouched,
+   but a 3D-transformed element is rasterised once and resampled, and at the size a box
+   is printed 漢字ドリル and 第993–2136番 came out as mush. Skewing only the walls leaves the front untouched,
    so every glyph on it is drawn at the device's own resolution. It also keeps what was
    true before: no perspective, no 3D context, no compositing layer per box, and a hover
    that is still one translate. */
 .bx-face{
-  position:absolute; left:var(--bx-d); top:var(--bx-d); width:calc(100% - var(--bx-d));
-  height:68.18cqw;
+  position:absolute; left:var(--bx-d); top:var(--bx-dy); width:calc(100% - var(--bx-d));
+  height:var(--bx-fh);
   container-type:inline-size;   /* the printing is measured against the front, not the slot */
   border-radius:.8cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
@@ -591,15 +626,17 @@ body{
 .bx-top,.bx-side{position:absolute; border:1px solid var(--edge); background-color:var(--stock)}
 /* the top, sheared back and to the left off the front's top edge */
 .bx-top{
-  left:var(--bx-d); top:0; width:calc(100% - var(--bx-d)); height:var(--bx-d);
-  transform-origin:0% 100%; transform:skewX(45deg);
+  left:var(--bx-d); top:0; width:calc(100% - var(--bx-d)); height:var(--bx-dy);
+  /* atan(1.38): the shear that carries the back edge --bx-d to the left over --bx-dy
+     of height, so the top recedes along the same axis the left wall does */
+  transform-origin:0% 100%; transform:skewX(54.07deg);
   background-image:linear-gradient(to top,rgba(255,255,255,.34),rgba(255,255,255,.06));
 }
 /* the left wall, sheared to meet it. Shaded warm rather than with neutral black, so a
    turned-away face is the same box in shadow and not a grey one. */
 .bx-side{
-  left:0; top:var(--bx-d); width:var(--bx-d); height:68.18cqw;
-  transform-origin:100% 0%; transform:skewY(45deg);
+  left:0; top:var(--bx-dy); width:var(--bx-d); height:var(--bx-fh);
+  transform-origin:100% 0%; transform:skewY(35.93deg);   /* atan(1 / 1.38), the same axis */
   background-image:linear-gradient(to left,rgba(58,42,18,.15),rgba(58,42,18,.33));
 }
 /* the tuck flap: a second thickness of card folded over the top. Tinting it and
@@ -714,13 +751,13 @@ body{
    dealFromBox in app.js flies it from here to the pile. The box itself never goes
    anywhere; the chooser it is standing in is simply replaced once the lid is off. */
 .bx-top{transition:transform .26s cubic-bezier(.3,.75,.35,1), opacity .26s}
-.slot.loading .bx-top{transform:translate(-5cqw,-11cqw) skewX(45deg); opacity:0}
+.slot.loading .bx-top{transform:translate(-5cqw,-11cqw) skewX(54.07deg); opacity:0}
 /* ---- the chooser at phone width ----
    Two changes, and the second is the one that matters. The name column goes, because
    74px of it out of 343 is a quarter of the screen spent on three characters. And the
-   row stops being a queue of 132px boxes with the leftover width beside it: the boxes
-   divide the row between them, so a phone shows two boxes the size of a thumb instead
-   of two the size of a mouse pointer and a column of empty desk. 148px is the smallest
+   row stops dividing itself six ways, which on a phone is a box the size of a stamp:
+   two boxes divide the row between them, so a phone shows two the size of a thumb
+   instead of six the size of a mouse pointer. 148px is the smallest
    box worth printing on, which makes it two boxes on every phone and three by the width
    at which the name column comes back. */
 @media (max-width:560px){
@@ -729,8 +766,7 @@ body{
   .groups{gap:18px}
   .group{grid-template-columns:1fr; gap:8px}
   .group-name{
-    flex-direction:row; align-items:baseline; gap:9px;
-    text-align:left; padding-top:0;
+    flex-direction:row; align-items:baseline; gap:9px; text-align:left;
   }
   /* 148px, or half the row on a screen too narrow to give two boxes that much —
      one box per row is a lot of scrolling and a box bigger than it needs to be. */
