@@ -364,6 +364,36 @@ name shorter than a sentence, and the box already prints their romaji. The names
 `GROUP_EN` in `app.js` rather than in the manifest, because they label the screen and not
 the cards — nothing in `data/` changes.
 
+**The lamp switches the room, not the table.** Both desks were always drawn — the
+stylesheet has had a `prefers-color-scheme` block since the beginning — and what was
+missing was a way to disagree with the system. So the switch is one attribute,
+`data-theme` on `<html>`, which the stylesheet already honours: `[data-theme="dark"]`
+restates the dark desk, and the media query is scoped `:not([data-theme="light"])` so a
+pinned light desk survives a dark OS.
+
+No attribute is a third state, and it is the one the page starts in — the system's
+choice, live. A page nobody has switched follows the OS over at dusk, and the button's
+label follows it too. Pressing the button is what stops it following, which is why
+nothing is written to `localStorage` until then: a value stored on load would freeze
+whatever the OS happened to be saying into a choice the reader never made.
+
+The button offers the room you are not in, so its face is the light you would switch on
+rather than the one that is already on — 夜 DARK on a light desk, 昼 LIGHT on a dark one,
+the kanji and the word for it together the way a pile carries both 済 and 済み. Two
+things fall out of the switch existing rather than being inferred from the OS. A theme
+forced against the system has to pin `color-scheme` as well, or the one part of the page
+the page does not draw — scrollbars, the UA's own focus ring — stays in the room the rest
+of it just left. And the remembered choice has to be on `<html>` before first paint, so
+that much runs from a `<script>` in the `<head>`; a dark room that opens as a flash of a
+light one is worse than no switch at all.
+
+It is a child of `<body>` rather than of either screen, which keeps it in one place while
+the chooser gives way to the table and back, and it is in the flow rather than fixed to a
+corner: the card is `min(94vw,680px)`, so on a phone a corner is the corner of the card.
+It sizes itself to the chooser's 960px rather than the table's 680px so that picking a
+deck does not move it — the two screens are different widths and the switch belongs to
+neither.
+
 ## The kana card
 
 A kanji card and a kana card are the same piece of card stock — same stock, same shadow,
@@ -517,8 +547,8 @@ jōyō kanji it does not cover are placed by school grade.
 ## Not done yet
 
 - **No progress.** Which cards you have seen is not remembered; a reload deals a fresh
-  shuffle. This is the one part that needs somewhere to write, and `localStorage` covers
-  it long before a database does.
+  shuffle. This is the part that most wants somewhere to write, and `localStorage` — which
+  the theme switch already uses — covers it long before a database does.
 - **N1 is one 555KB download.** Fine on a laptop, heavy on a phone. Stroke paths are
   about two thirds of it and are only needed for the practice strip, so splitting them
   into a second file the deck pulls after the text would cut first paint a lot.

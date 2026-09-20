@@ -583,9 +583,11 @@ addEventListener("keydown", e => {
   if (chooser.hidden === false) return;
   if (e.key === "f" || e.key === "F") { e.preventDefault(); return setFlipped(!flipped); }
   if (e.key === "z" || e.key === "Z") { e.preventDefault(); return revertCard(); }
-  // a pile that has focus is activated by the browser itself, so space must not fall
-  // through to a draw as well
-  if (e.target === card || e.target === drawPile || e.target === usedPile) return;
+  // Any button that has focus is activated by space itself, so space must not fall
+  // through to a draw as well — the piles and the card, and equally `change deck` and
+  // the lamp, which are buttons that are only ever reached by tab and would otherwise
+  // deal a card when pressed the one way they can be.
+  if (e.target.closest("button")) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); drawCard(); }
 });
 
@@ -815,6 +817,58 @@ function renderChooser() {
     groupList.appendChild(row);
   });
 }
+
+/* ============ the lamp ============
+   The stylesheet already draws both rooms and already knows how to choose between them:
+   `prefers-color-scheme` picks one, and `[data-theme]` on <html> overrides it. So the
+   switch is one attribute, and the only work here is which room it names, remembering
+   it, and saying on the button which one it is not.
+
+   No attribute is the third state, and it is the one the page starts in: the system's
+   choice, live. A page nobody has switched follows the OS over at dusk and moves with
+   it; pressing the button is what stops it following, because from then on the page has
+   been told. That is why nothing is written until the button is pressed — a value
+   stored on load would freeze whatever the OS happened to be saying at the time into a
+   choice the reader never made.
+
+   The button offers the room you are not in, so what it shows is the light you would be
+   switching on rather than the one that is already on. */
+const THEME_KEY = "drill-card:theme";
+const lamp = $("lamp"), prefersDark = matchMedia("(prefers-color-scheme: dark)");
+/* A store can refuse: Safari throws on localStorage in a blocked third-party frame and
+   file:// has been an opaque origin in more than one browser. The lamp works either
+   way; it just does not carry over to the next visit. */
+const remember = t => { try { localStorage.setItem(THEME_KEY, t); } catch (e) {} };
+
+// What the page is showing: the choice, if one has been made, and the system's if not.
+const themeNow = () =>
+  document.documentElement.dataset.theme || (prefersDark.matches ? "dark" : "light");
+
+function paintLamp() {
+  const other = themeNow() === "dark" ? "light" : "dark";
+  $("lampMark").textContent = other === "dark" ? "夜" : "昼";
+  $("lampName").textContent = other;
+  lamp.setAttribute("aria-label", `Switch to the ${other} theme.`);
+  // A phone paints the chrome above the page itself, and the desk should not stop at
+  // the top of the viewport. Read back off :root rather than restated here, so the
+  // stylesheet stays the one place either desk is written down.
+  $("themeColor").setAttribute("content",
+    getComputedStyle(document.documentElement).getPropertyValue("--desk").trim());
+}
+
+lamp.addEventListener("click", () => {
+  const next = themeNow() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  remember(next);
+  paintLamp();
+});
+
+// Only matters while the page is still following the system — once the attribute is set
+// themeNow() stops reading this and the repaint is a no-op — but while it is following,
+// the room changing under the page has to change what the button offers.
+prefersDark.addEventListener("change", paintLamp);
+
+paintLamp();
 
 $("relevel").addEventListener("click", renderChooser);
 renderChooser();

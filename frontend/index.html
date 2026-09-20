@@ -8,8 +8,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap">
 <link rel="stylesheet" href="src/styles.css">
+<!-- The colour the phone paints its own chrome, so the desk carries on past the page.
+     It is the desk's top stop; app.js restates it whenever the room changes. -->
+<meta name="theme-color" id="themeColor" content="#D6D1C4">
+<!-- Before first paint, and so before the stylesheet has decided anything: a remembered
+     choice has to be on <html> already, or a dark room opens as a flash of a light one.
+     Everything else about the lamp is in app.js; this is only the part that cannot wait
+     for a script at the end of the body. -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem("drill-card:theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    } catch (e) {}   /* a store that will not open leaves the system's choice standing */
+  })();
+</script>
 </head>
 <body>
+
+<!-- The switch for the room the cards are in, rather than anything on the table: the
+     desk is what a theme changes, so it sits off the table and stays put across both
+     screens. -->
+<div class="room">
+  <button class="lamp" id="lamp" type="button">
+    <span class="lamp-mark" id="lampMark"></span>
+    <span class="lamp-name" id="lampName"></span>
+  </button>
+</div>
 
 <!-- Shown until a deck is picked; each deck is a separate download. -->
 <div class="chooser" id="chooser">
