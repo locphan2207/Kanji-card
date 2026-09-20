@@ -460,11 +460,14 @@ body{
 .box:focus-visible .bx-lid{outline:2px solid var(--ink); outline-offset:3px}
 
 .bx-lid{
-  position:absolute; left:0; top:0; width:100%; height:75.76cqw;
+  position:absolute; left:1.7cqw; top:0; width:calc(100% - 3.4cqw); height:74.05cqw;
+  z-index:1;
   border-radius:2.3cqw 2.3cqw 1.5cqw 1.5cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
   border:1px solid var(--edge);
-  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6);
+  /* the last shadow is the one the lid drops into the tray it is sitting in */
+  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6),
+             0 .55cqw .7cqw -.25cqw rgba(40,32,18,.5);
   font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
   transition:transform .32s cubic-bezier(.4,0,.6,1), opacity .32s;
 }
@@ -478,15 +481,23 @@ body{
   border-bottom:1px solid var(--rule-soft);
   box-shadow:0 1px 0 rgba(255,255,255,.72), 0 4px 5px -4px rgba(40,32,18,.55);
 }
-/* the box's own front face: the one place its depth shows. Every box is the same
-   size, so this is the same sliver on all fourteen. */
+/* The tray the lid sits in — the half of the box that holds the cards. It is wider
+   than the lid and starts below its top edge, so it shows as a margin down both sides
+   and along the foot: two pieces of board, one set into the other, which is what says
+   container. It used to be a single sliver along the bottom printed with a repeating
+   1.5px rule, and that was the bug — a stack of evenly spaced cut edges is the picture
+   of a pile of cards, which is exactly the thing a box is not.
+
+   It carries no printing. A telescoping box is printed on its lid, and the tray under
+   it is plain board; that is also what makes picking a deck read correctly, because the
+   lid flies off and leaves the open tray behind rather than a hole. The inset shadow at
+   its top is the inside of the box, invisible until that moment. */
 .bx-depth{
-  position:absolute; left:1.5cqw; right:1.5cqw; top:75.76cqw; height:3.8cqw;
-  border:1px solid var(--edge); border-top:none; border-radius:0 0 2.3cqw 2.3cqw;
+  position:absolute; left:0; right:0; top:2.4cqw; height:77.15cqw; z-index:0;
+  border:1px solid var(--edge); border-radius:2.6cqw;
   background-color:var(--stock);
-  background-image:
-    linear-gradient(to bottom,rgba(0,0,0,.24),rgba(0,0,0,.03) 40%,rgba(0,0,0,.26)),
-    repeating-linear-gradient(to bottom,transparent 0 1.5px,rgba(60,50,30,.3) 1.5px 2.5px);
+  background-image:linear-gradient(157deg,rgba(0,0,0,.17),rgba(0,0,0,.05) 40%,rgba(0,0,0,.2));
+  box-shadow:inset 0 .9cqw 1.1cqw -.55cqw rgba(40,32,18,.5);
 }
 /* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
    it moves, a gradient is painted once and then only scaled and faded. */
@@ -545,7 +556,7 @@ body{
    printed on the plain stock while the ground around it carries the series' tint. That
    is also what keeps every deck name black on cream: the colour never gets under type. */
 .bx-plate{
-  position:absolute; left:9.85cqw; right:9.85cqw; top:33%; bottom:6.06cqw; z-index:2;
+  position:absolute; left:8.15cqw; right:8.15cqw; top:33%; bottom:6.06cqw; z-index:2;
   background:linear-gradient(180deg,var(--paper),var(--paper-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */

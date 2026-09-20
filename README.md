@@ -119,12 +119,31 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
-of cards comes in a box, so it is drawn as one. Two details do the whole job of saying
-"box" rather than "card": the tuck flap folded over the top — tinted, with a hairline and
-a sliver of cast shadow at its edge — and the sliver of the box's own front face along the
-bottom. A thumb notch was tried and taken off: it is the right detail on a real box and it
-took a bite out of every label. Nothing is tilted and nothing is a 3D context, so a hover
-is one `translateY` on the compositor and no script runs at all.
+of cards comes in a box, so it is drawn as one — and drawn as *two pieces of board*,
+because that is what says container. A lid sits in a tray. The tray is wider than the lid
+and starts below its top edge, so it shows as a margin down both sides and along the foot,
+with the lid dropping a shadow into it. The tuck flap folded over the top of the lid —
+tinted, with a hairline and a sliver of cast shadow at its edge — does the rest.
+
+The tray replaced a single sliver along the bottom that was printed with a repeating 1.5px
+rule, and that rule was the bug: a stack of evenly spaced cut edges is the picture of *a
+pile of cards*, which is precisely the thing a box is not. The detail meant to say "this
+is a box" was the one saying "this is a stack". A thumb notch was tried and taken off too
+— the right detail on a real box, but it took a bite out of every label.
+
+The tray carries no printing, because a telescoping box is printed on its lid and the tray
+under it is plain board. That is also what makes picking a deck read correctly: the lid
+flies off and leaves the open tray behind rather than a hole, and the inset shadow along
+the tray's top edge — invisible until that moment — is the inside of the box.
+
+Nothing is tilted and nothing is a 3D context, so a hover is one `translateY` on the
+compositor and no script runs at all.
+
+Insetting the lid cost the label 3.4cqw of width, and `第993–2136番 全1144枚` is the widest
+foot there is — it came within a hair of colliding. The label's side margins give back
+exactly what the inset took, so it is the same width on the slot it always was. Everything
+else printed on the lid is measured from the lid and moves with it, which is right,
+because the lid is the thing being printed.
 
 **What is printed on a box is the deck's own data.** A 和柄 ground says which of the three
 series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for
