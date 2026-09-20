@@ -153,36 +153,41 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* ============ the lamp ============
-   The desk is the room the cards are in, so the switch for it is not on the table. It is
-   a child of <body> rather than of either screen, which is what keeps it in one place
+/* ============ the switches ============
+   The desk is the room the cards are in and the flights are what the table does with a
+   card rather than anything a card is, so neither switch is on the table. They are
+   children of <body> rather than of either screen, which is what keeps them in one place
    while the chooser gives way to the table and back — and in the flow rather than fixed
    to a corner, because the card is min(94vw,680px) and a corner on a phone is the corner
-   of the card. It costs a row at the top of the page and never lands on anything.
+   of the card. They cost a row at the top of the page and never land on anything.
 
-   It sizes itself to the chooser's 1248px and not to the table's 680px so that it does
-   not move when a deck is picked: the two screens are different widths and the switch
-   belongs to neither.
+   The row sizes itself to the chooser's 1248px and not to the table's 680px so that it
+   does not move when a deck is picked: the two screens are different widths and the
+   switches belong to neither. The lamp is last, so it keeps the corner it has always had
+   and the second switch is the one that moved in beside it.
 
-   Set like `change deck`, because it is the same kind of thing — small, off to one side,
-   and asking to be found rather than looked at. The face is the 昼/夜 of the room you
-   are not in, in the card's own face, next to the word for it, the way a pile carries
-   both 済 and 済み. The focus ring is currentColor and not --ink: --ink is the near-black
-   the words on a card are printed in, and it is the same near-black in both rooms, which
-   is invisible against a dark desk. */
-.room{display:flex; justify-content:flex-end; width:100%; max-width:1248px}
-.lamp{
+   Set like `change deck`, because they are the same kind of thing — small, off to one
+   side, and asking to be found rather than looked at. Each face is the 昼/夜 or 動/静 of
+   the state you are not in, in the card's own face, next to the word for it, the way a
+   pile carries both 済 and 済み. The focus ring is currentColor and not --ink: --ink is
+   the near-black the words on a card are printed in, and it is the same near-black in
+   both rooms, which is invisible against a dark desk. */
+.room{display:flex; justify-content:flex-end; gap:8px; width:100%; max-width:1248px}
+/* One class for both, because they are one object in two jobs: same size, same face,
+   same tracking, so the pair reads as a row of switches rather than as two controls that
+   happen to be next to each other. */
+.sw{
   display:flex; align-items:center; gap:7px;
   font-family:var(--latin); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase;
   background:transparent; color:var(--ui); border:1px solid currentColor; border-radius:2px;
   padding:6px 10px; cursor:pointer; opacity:.5; transition:opacity .12s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.lamp:hover{opacity:.9}
-.lamp:focus-visible{outline:2px solid currentColor; outline-offset:3px; opacity:.9}
+.sw:hover{opacity:.9}
+.sw:focus-visible{outline:2px solid currentColor; outline-offset:3px; opacity:.9}
 /* letter-spacing is the label's, not the character's: an em of tracking after a single
    kanji is a gap the flex gap has already left. */
-.lamp-mark{font-family:var(--jp); font-size:12px; letter-spacing:0; line-height:1}
+.sw-mark{font-family:var(--jp); font-size:12px; letter-spacing:0; line-height:1}
 
 /* ============ the card ============
    Geometry taken from the reference photo, perspective-corrected to 1380x1000.
@@ -918,6 +923,28 @@ body{
 .kn-words .bk-row .w{font-family:var(--latin); letter-spacing:.02em}
 .kn-words .bk-row .g{font-size:2.25cqw}
 
+/* ============ stillness ============
+   Everything that moves, stopped in one place. The flights are JavaScript and skip
+   themselves — `still()` in app.js asks the same question this does — so what is left
+   here is the CSS half: the card's turn, the lid coming off a box, the hover lift, the
+   fade the table comes up on.
+
+   Two ways in, and the switch is the one that wins. The system's preference is scoped
+   `:not([data-motion="full"])` exactly as the dark desk is scoped
+   `:not([data-theme="light"])`, so a reader who asks for the cards to be dealt gets
+   them dealt on a machine that would rather they were not; and `[data-motion="none"]`
+   stops them on a machine that has never asked for anything. No attribute is the third
+   state — the system's preference, live — and it is the one the page starts in.
+
+   Durations rather than `animation:none`, which is how this block was already written:
+   an animation that carries its end state forward — `.table.dealing` fades the table up
+   with `both` — still arrives at it, instead of never starting and holding whatever it
+   was given to start from. */
 @media (prefers-reduced-motion:reduce){
-  *{animation-duration:.01ms!important; transition-duration:.01ms!important}
+  :root:not([data-motion="full"]),:root:not([data-motion="full"]) *{
+    animation-duration:.01ms!important; transition-duration:.01ms!important;
+  }
+}
+:root[data-motion="none"],:root[data-motion="none"] *{
+  animation-duration:.01ms!important; transition-duration:.01ms!important;
 }

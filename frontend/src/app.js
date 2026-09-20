@@ -1,7 +1,12 @@
 const $ = id => document.getElementById(id);
 const card = $("card"), stage = $("stage");
 const drawPile = $("drawPile"), usedPile = $("usedPile");
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* Whether a move is flown across the table or simply made. Asked at the start of each
+   move rather than settled once at load, because the room has a switch for it now and it
+   can be thrown between one draw and the next. What it asks is at the foot of this file,
+   beside the lamp — the other switch on the same wall. */
+const prefersStill = matchMedia("(prefers-reduced-motion: reduce)");
+const still = () => motionNow() === "none";
 
 const kata = s => s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
 const okuri = s => s.replace(/^-/, "〜").replace(/\.(.+)$/, "（$1）");
@@ -244,7 +249,7 @@ function drawCard() {
   const incoming = deck.shift();
   const wasFlipped = flipped;
 
-  if (reduced) {
+  if (still()) {
     if (outgoing >= 0) used.push(outgoing);
     current = incoming; setFlipped(false); paint(card, CARDS[current]); renderPiles();
     busy = false;
@@ -308,7 +313,7 @@ function revertCard() {
   const incoming = used.pop();
   const wasFlipped = flipped;
 
-  if (reduced) {
+  if (still()) {
     if (outgoing >= 0) deck.unshift(outgoing);
     current = incoming; setFlipped(true); paint(card, CARDS[current]); renderPiles();
     busy = false;
@@ -532,7 +537,7 @@ async function reshuffle() {
   if (busy || !used.length) return;
   busy = true;
 
-  if (reduced) {
+  if (still()) {
     if (current >= 0) used.push(current);
     deck = shuffle(used); used = [];
     current = deck.shift();
@@ -585,8 +590,8 @@ addEventListener("keydown", e => {
   if (e.key === "z" || e.key === "Z") { e.preventDefault(); return revertCard(); }
   // Any button that has focus is activated by space itself, so space must not fall
   // through to a draw as well — the piles and the card, and equally `change deck` and
-  // the lamp, which are buttons that are only ever reached by tab and would otherwise
-  // deal a card when pressed the one way they can be.
+  // the two switches in the room, which are buttons that are only ever reached by tab
+  // and would otherwise deal a card when pressed the one way they can be.
   if (e.target.closest("button")) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); drawCard(); }
 });
@@ -690,7 +695,7 @@ function fly(dest, f, idx, lean, duration, delay) {
 
 function dealFromBox(cards, meta, from) {
   deal(cards, meta);
-  if (reduced) return;
+  if (still()) return;
   busy = true;                      // no drawing out of a pile that has not landed yet
 
   const pileBox = drawPile.getBoundingClientRect();
@@ -778,7 +783,7 @@ function deckBox(d, vol) {
     // mid-flight. Hold the table back until the box has actually opened.
     // where the box is standing, caught before the chooser gives way to the table
     const from = b.querySelector(".bx-face").getBoundingClientRect();
-    Promise.all([loadCards(d), settle(reduced ? 0 : 240)])
+    Promise.all([loadCards(d), settle(still() ? 0 : 240)])
       .then(([cards]) => {
         groupList.classList.remove("busy");
         dealFromBox(cards, d, from);
@@ -846,9 +851,9 @@ function renderChooser() {
 const THEME_KEY = "drill-card:theme";
 const lamp = $("lamp"), prefersDark = matchMedia("(prefers-color-scheme: dark)");
 /* A store can refuse: Safari throws on localStorage in a blocked third-party frame and
-   file:// has been an opaque origin in more than one browser. The lamp works either
-   way; it just does not carry over to the next visit. */
-const remember = t => { try { localStorage.setItem(THEME_KEY, t); } catch (e) {} };
+   file:// has been an opaque origin in more than one browser. Either switch works either
+   way; the choice just does not carry over to the next visit. */
+const remember = (key, value) => { try { localStorage.setItem(key, value); } catch (e) {} };
 
 // What the page is showing: the choice, if one has been made, and the system's if not.
 const themeNow = () =>
@@ -869,7 +874,7 @@ function paintLamp() {
 lamp.addEventListener("click", () => {
   const next = themeNow() === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = next;
-  remember(next);
+  remember(THEME_KEY, next);
   paintLamp();
 });
 
@@ -879,6 +884,57 @@ lamp.addEventListener("click", () => {
 prefersDark.addEventListener("change", paintLamp);
 
 paintLamp();
+
+/* ============ the switch beside it ============
+   The same switch again, for movement instead of light, and built the same way for the
+   same reason: the page already knew how to do without the animations, and what was
+   missing was a way to say so from the page. `prefers-reduced-motion` has skipped every
+   flight since the flights existed, but it is an operating system setting, three menus
+   deep, and it is all or nothing for every site — which is a strange thing to have to
+   change because one table of cards deals them too theatrically for you.
+
+   So: one attribute on <html>, `data-motion`, no attribute as the third state, and the
+   system's preference live underneath it. The stylesheet reads it for the card's turn
+   and the lid, and `still()` at the head of this file reads it for the flights — the
+   animations here are written in JavaScript, so a media query alone could never have
+   been the whole of the answer.
+
+   Nothing is stopped mid-flight. A card already in the air lands and the pile it was
+   going to still takes it; it is the next move that is simply made rather than dealt,
+   which is what `still()` being asked per move rather than once at load buys.
+
+   The face is 動 / 静 beside the lamp's 昼 / 夜, and like the lamp it offers the table
+   you are not at rather than the one you are — 静 STILL while the cards are flying. */
+const MOTION_KEY = "drill-card:motion";
+const motion = $("motion");
+
+// What the table is doing: the choice, if one has been made, and the system's if not.
+function motionNow() {
+  return document.documentElement.dataset.motion ||
+    (prefersStill.matches ? "none" : "full");
+}
+
+function paintMotion() {
+  const other = motionNow() === "none" ? "full" : "none";
+  $("motionMark").textContent = other === "none" ? "静" : "動";
+  $("motionName").textContent = other === "none" ? "still" : "motion";
+  motion.setAttribute("aria-label", other === "none"
+    ? "Turn the card animations off. Cards change without being dealt."
+    : "Turn the card animations on. Cards are dealt across the table.");
+}
+
+motion.addEventListener("click", () => {
+  const next = motionNow() === "none" ? "full" : "none";
+  document.documentElement.dataset.motion = next;
+  remember(MOTION_KEY, next);
+  paintMotion();
+});
+
+// As with the lamp: this only matters while the page is still following the system, and
+// while it is, a system that changes its mind has to change what the button offers.
+prefersStill.addEventListener("change", paintMotion);
+
+paintMotion();
 
 $("relevel").addEventListener("click", renderChooser);
 renderChooser();
