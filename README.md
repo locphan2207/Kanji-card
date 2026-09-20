@@ -29,7 +29,7 @@ open frontend/index.html          # no build step, no server needed
 frontend/
   index.html               markup, and a <template> per kind of card
   src/styles.css           everything visual
-  src/app.js               deck loading, deck state, painting, and the flight animations
+  src/app.js               deck loading, deck state, painting, the flights, and the switches
   data/decks.js            the sixteen decks and their card counts (loaded on every visit)
   data/decks/hira-sei.js   one file per deck, loaded only when picked
   data/decks/n1.js         …
@@ -495,6 +495,57 @@ It sizes itself to the chooser's 1248px rather than the table's 680px so that pi
 deck does not move it — the two screens are different widths and the switch belongs to
 neither.
 
+**And a second switch beside it, for the animations.** The flights are the best thing
+about this table and they are not what anyone came for. A card takes about half a second
+to reach the discard and the next takes half a second to arrive; drilling 119 kana is 119
+of those, and someone working through a deck at speed is waiting on a dealer rather than
+reading a card. `prefers-reduced-motion` has skipped every flight since the flights
+existed, but it is an operating system setting, three menus deep, and it is all or nothing
+for every site — a strange thing to have to change because one page deals its cards too
+theatrically. So the page asks for itself.
+
+It is the lamp again, built the same way for the same reasons, which is most of why it is
+worth having: one attribute on `<html>`, `data-motion`, no attribute as the third state,
+and the system's preference live underneath it. The stylesheet's reduce block is scoped
+`:not([data-motion="full"])` exactly as the dark desk is scoped `:not([data-theme="light"])`,
+so a reader who wants the cards dealt keeps them on a machine that would rather they were
+not; and `[data-motion="none"]` stops them on a machine that has never asked for anything.
+The remembered choice is restored by the same `<head>` script the theme uses, though not
+for the theme's reason — nothing is on screen to animate until `app.js` has drawn the
+chooser, so this one could have been restored at the foot of the body. It is up there
+because the two are one kind of thing, and a pair of remembered choices restored in two
+different places is how one of them ends up restored in neither.
+
+Where it differs from the lamp is who reads it. A theme is CSS and nothing else, but the
+flights are `Element.animate` calls in `app.js`, which no media query reaches. So `still()`
+at the head of that file asks the same attribute the stylesheet does, and every move asks
+it at the moment it is made rather than once at load — the switch can be thrown between
+two draws, and the third state has to keep following the system after it. Nothing is
+stopped mid-flight: a card already in the air lands and the pile it was going to still
+takes it. It is the next move that is put down instead of dealt.
+
+What stops is the whole of it — the deal out of the box, the flight to the discard, the
+gather and riffle when the pile runs out, the lid coming off, the card's half-second turn.
+What does not stop is anything that was ever information: the card still turns over, the
+piles still count down, `z` still takes the last card back, the pile still shuffles when
+it empties. Only the theatre goes.
+
+The two switches are one class, `.sw`, because they are one object in two jobs — same
+size, same face, same tracking — and the pair reads as a row of switches rather than as
+two controls that happen to be adjacent. The lamp keeps the corner it has always had and
+the new one is set to its left, 動 MOTION and 静 NO MOTION beside the lamp's 昼 and 夜 —
+each offering the state you are not in, the kanji and the word for it together the way a
+pile carries both 済 and 済み.
+
+The pair was 静 STILL and 動 MOTION for about as long as it took to look at it. STILL is
+an adverb before it is an adjective, and beside a deck of cards it reads as "still going"
+at least as readily as "motionless" — one word doing the opposite of the job. The fix is
+not a cleverer word but a matched one: NO MOTION cannot be read as anything except the
+other half of MOTION, and a reader who has pressed it once never has to think about
+either again. It costs 21px of a button that nothing is lined up against — the row is
+`flex-end`, so the lamp stays in its corner and only the left edge of the button under
+the cursor moves.
+
 ## The kana card
 
 A kanji card and a kana card are the same piece of card stock — same stock, same shadow,
@@ -649,7 +700,7 @@ jōyō kanji it does not cover are placed by school grade.
 
 - **No progress.** Which cards you have seen is not remembered; a reload deals a fresh
   shuffle. This is the part that most wants somewhere to write, and `localStorage` — which
-  the theme switch already uses — covers it long before a database does.
+  the two switches in the room already use — covers it long before a database does.
 - **N1 is one 555KB download.** Fine on a laptop, heavy on a phone. Stroke paths are
   about two thirds of it and are only needed for the practice strip, so splitting them
   into a second file the deck pulls after the text would cut first paint a lot.

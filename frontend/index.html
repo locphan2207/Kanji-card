@@ -13,26 +13,39 @@
 <meta name="theme-color" id="themeColor" content="#D6D1C4">
 <!-- Before first paint, and so before the stylesheet has decided anything: a remembered
      choice has to be on <html> already, or a dark room opens as a flash of a light one.
-     Everything else about the lamp is in app.js; this is only the part that cannot wait
-     for a script at the end of the body. -->
+     That is the theme's reason and the theme's alone — nothing is on screen to animate
+     until app.js has drawn the chooser, so a remembered `data-motion` could perfectly
+     well be set down there. It is here because the two are one kind of thing, and a pair
+     of remembered choices restored in two different places is how one of them ends up
+     restored in neither. Everything else about either switch is in app.js; this is only
+     the part that cannot wait for a script at the end of the body. -->
 <script>
   (function () {
+    var el = document.documentElement;
     try {
       var t = localStorage.getItem("drill-card:theme");
-      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      if (t === "light" || t === "dark") el.dataset.theme = t;
+      var m = localStorage.getItem("drill-card:motion");
+      if (m === "full" || m === "none") el.dataset.motion = m;
     } catch (e) {}   /* a store that will not open leaves the system's choice standing */
   })();
 </script>
 </head>
 <body>
 
-<!-- The switch for the room the cards are in, rather than anything on the table: the
-     desk is what a theme changes, so it sits off the table and stays put across both
-     screens. -->
+<!-- Two switches on the wall of the room the cards are in, rather than anything on the
+     table. A theme changes the desk and the other switch changes how the cards get from
+     one place to another; neither is a property of the deck on the table, so both sit
+     off it and stay put across both screens. The lamp keeps the corner it has always
+     had, and the new one is set beside it. -->
 <div class="room">
-  <button class="lamp" id="lamp" type="button">
-    <span class="lamp-mark" id="lampMark"></span>
-    <span class="lamp-name" id="lampName"></span>
+  <button class="sw" id="motion" type="button">
+    <span class="sw-mark" id="motionMark"></span>
+    <span class="sw-name" id="motionName"></span>
+  </button>
+  <button class="sw" id="lamp" type="button">
+    <span class="sw-mark" id="lampMark"></span>
+    <span class="sw-name" id="lampName"></span>
   </button>
 </div>
 
