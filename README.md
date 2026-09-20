@@ -119,32 +119,33 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
-of cards comes in a box, so it is drawn as one — as the box a deck of cards actually
-comes in, which is a tuck carton: one rectangle of printed board, portrait, with the flap
-folded over the top. That proportion is doing most of the work. A playing card box is
-recognisable before you have read anything on it, and nothing else about the drawing has
-to argue that this is a box once the shape has said so.
+of cards comes in a box, so it is drawn as one — as a solid, not as a picture of one.
+The printed front, the top and the right wall, in cabinet projection, at the footprint the
+flat drawing always had: the front gives up exactly the projected depth in width and
+height, so a box occupies its slot the way it did before it had volume.
 
-Two earlier attempts got that wrong in opposite directions. The first drew a landscape
-panel with a sliver along its foot, and printed the sliver with a repeating 1.5px rule to
-suggest depth — but evenly spaced cut edges are the picture of *a pile of cards*, so the
-one detail meant to say "box" was the detail saying "stack". The second replaced it with a
-lid sitting in a tray, visible as a margin down both sides; that reads as a container, but
-the container it reads as is a gift box, not a card box. Neither had the shape right, and
-the shape was the whole problem. A thumb notch was tried and taken off as well — the right
-detail on a real box, but it took a bite out of every label.
+**The walls are 2D skews, and that is the whole reason this is usable.** Rotating the
+front in 3D was tried first and it is the obvious way to build a box: `preserve-3d` on the
+button, `rotateX`/`rotateY`, a wall hinged on each edge. It looks right and it destroys the
+type. A 3D-transformed element is rasterised once and then resampled, and at 132px that
+turns 漢字ドリル and 第993–2136番 into mush — the deck's name, which is the one thing the
+chooser exists to show. Skewing only the two turned-away walls leaves the front
+untransformed, so every glyph on it is drawn at the device's own resolution. It also keeps
+what was true of the flat version: no perspective, no 3D context, no compositing layer per
+box, and a hover that is still one `translateY`.
 
-So the box is one piece now. The flap is a shallow band across the top with its crease and
-a sliver of cast shadow; the 和柄 ground is printed over the whole front; the workbook's
-label is pasted at the middle, at the height its type was set for rather than stretched to
-the new format; and the 印 is stamped in the corner beside the series line. Nothing is
-tilted and nothing is a 3D context, so a hover is one `translateY` on the compositor and no
-script runs at all.
+The front is a container of its own, so the printing is measured against the front rather
+than against the slot. That is what lets the depth be a single number: change `--bx-d` and
+the front, both walls and everything printed on the front resize together.
 
-The cost is on a phone, where sixteen portrait boxes two to a row is about half again as
-much scrolling as sixteen landscape ones. Three to a row would fix that and was tried:
-at 111px a box's foot line sets at under 6px, which is not a line of type any more. Two
-it is.
+Two earlier attempts got this wrong. The first drew a landscape panel with a sliver along
+its foot and printed the sliver with a repeating 1.5px rule to suggest depth — but evenly
+spaced cut edges are the picture of *a pile of cards*, so the one detail meant to say "box"
+was the detail saying "stack". The second replaced the sliver with a lid sitting in a
+tray, which reads as a container, but the container it reads as is a gift box. Both were
+drawing a box flat and hoping a detail would carry it. Nothing had to carry it once the
+box was actually drawn as a solid. A thumb notch was tried and taken off as well — the
+right detail on a real box, but it took a bite out of every label.
 
 **What is printed on a box is the deck's own data.** A 和柄 ground says which of the three
 series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for

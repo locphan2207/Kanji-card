@@ -441,14 +441,16 @@ body{
    second is the first, larger, rather than the same small box with the type left behind
    at the size it was set for a mouse. */
 .slot{
-  position:relative; width:132px; aspect-ratio:132/184; flex:0 0 auto;
+  --bx-d:10cqw;                 /* the projected depth of the box */
+  position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
   container-type:inline-size;
 }
 .box{
-  position:absolute; left:0; top:0; width:100%; height:135cqw;
+  position:absolute; left:0; top:0; width:100%; height:78.18cqw;
   background:none; border:none; padding:0; cursor:pointer; color:inherit;
   -webkit-tap-highlight-color:transparent;
-  transform:translateY(0); transition:transform .17s cubic-bezier(.2,.86,.3,1);
+  transform:translateY(0);
+  transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .32s;
 }
 /* A finger cannot hover. On a touchscreen :hover sticks to whatever was tapped last,
    so the lift is a pointer's feedback and the press below is everyone's. */
@@ -459,21 +461,49 @@ body{
 .box:focus-visible{outline:none}
 .box:focus-visible .bx-face{outline:2px solid var(--ink); outline-offset:3px}
 
+/* ---- the box as a solid ----
+   A card box is a box, so it is drawn as one: the printed front, the top, and the right
+   wall, in cabinet projection. --bx-d is the projected depth, and the front gives up
+   exactly that much width and height, so the whole solid still occupies the footprint
+   the flat drawing had.
+
+   The two walls are 2D skews, not 3D rotations, and that is the whole reason this is
+   usable. Rotating the front in 3D was tried first and it is the obvious way to do it —
+   but a 3D-transformed element is rasterised once and resampled, and at 132px 漢字ドリル
+   and 第993–2136番 came out as mush. Skewing only the walls leaves the front untouched,
+   so every glyph on it is drawn at the device's own resolution. It also keeps what was
+   true before: no perspective, no 3D context, no compositing layer per box, and a hover
+   that is still one translate. */
 .bx-face{
-  position:absolute; left:0; top:0; width:100%; height:135cqw;
-  border-radius:1.5cqw; overflow:hidden;
+  position:absolute; left:0; top:var(--bx-d); width:calc(100% - var(--bx-d));
+  height:68.18cqw;
+  container-type:inline-size;   /* the printing is measured against the front, not the slot */
+  border-radius:.8cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
   border:1px solid var(--edge);
-  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
   font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
-  transition:transform .32s cubic-bezier(.4,0,.6,1), opacity .32s;
+}
+.bx-top,.bx-side{position:absolute; border:1px solid var(--edge); background-color:var(--stock)}
+/* the top, sheared back and to the right off the front's top edge */
+.bx-top{
+  left:0; top:0; width:calc(100% - var(--bx-d)); height:var(--bx-d);
+  transform-origin:0% 100%; transform:skewX(-45deg);
+  background-image:linear-gradient(to top,rgba(255,255,255,.34),rgba(255,255,255,.06));
+}
+/* the right wall, sheared to meet it. Shaded warm rather than with neutral black, so a
+   turned-away face is the same box in shadow and not a grey one. */
+.bx-side{
+  left:calc(100% - var(--bx-d)); top:var(--bx-d); width:var(--bx-d); height:68.18cqw;
+  transform-origin:0% 0%; transform:skewY(-45deg);
+  background-image:linear-gradient(to right,rgba(58,42,18,.15),rgba(58,42,18,.33));
 }
 /* the tuck flap: a second thickness of card folded over the top. Tinting it and
    giving its edge a hairline plus a sliver of cast shadow is the whole trick, and
    unlike a thumb notch it crosses the printing the way a real flap does rather
    than cutting a hole in it. */
 .bx-flap{
-  position:absolute; left:0; right:0; top:0; height:11%; z-index:3; pointer-events:none;
+  position:absolute; left:0; right:0; top:0; height:23%; z-index:3; pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.014) 66%,transparent);
   border-bottom:1px solid var(--rule-soft);
   box-shadow:0 1px 0 rgba(255,255,255,.72), 0 4px 5px -4px rgba(40,32,18,.55);
@@ -482,7 +512,7 @@ body{
 /* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
    it moves, a gradient is painted once and then only scaled and faded. */
 .bx-shade{
-  position:absolute; left:-8%; width:116%; height:14cqw; bottom:1.5cqw;
+  position:absolute; left:-8%; width:116%; height:18.2cqw; bottom:1.5cqw;
   background:radial-gradient(50% 50% at 50% 50%,var(--box-shade),transparent 70%);
   transform:scaleX(.9) scaleY(.6); opacity:.9; transform-origin:50% 35%;
   transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .17s;
@@ -529,14 +559,14 @@ body{
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
 }
 .bx-series{
-  position:absolute; left:8.33cqw; top:19cqw; z-index:2;
-  font-size:5.2cqw; letter-spacing:.16em; color:var(--ink-2);
+  position:absolute; left:8.33cqw; top:6.8cqw; z-index:2;
+  font-size:5.7cqw; letter-spacing:.16em; color:var(--ink-2);
 }
 /* The label is a slip of paper pasted onto the box, not part of the box, so it is
    printed on the plain stock while the ground around it carries the series' tint. That
    is also what keeps every deck name black on cream: the colour never gets under type. */
 .bx-plate{
-  position:absolute; left:9.85cqw; right:9.85cqw; top:36%; bottom:30.5%; z-index:2;
+  position:absolute; left:9.85cqw; right:9.85cqw; top:33%; bottom:6.06cqw; z-index:2;
   background:linear-gradient(180deg,var(--paper),var(--paper-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */
@@ -562,7 +592,7 @@ body{
 }
 /* 印 - the volume numeral, stamped. The only colour in the whole app, and only here. */
 .bx-seal{
-  position:absolute; right:6.4cqw; top:18.2cqw; z-index:5;
+  position:absolute; right:5.3cqw; top:5.3cqw; z-index:5;
   width:11.4cqw; height:11.4cqw; display:grid; place-items:center;
   border:.9cqw solid var(--shu); border-radius:1.14cqw;
   color:var(--shu); font-size:7.2cqw; line-height:1; opacity:.92;
@@ -571,7 +601,7 @@ body{
 .groups.busy .box{cursor:progress}
 .groups.busy .slot:not(.loading) .box{opacity:.45}
 /* picking a deck takes the box off the table */
-.slot.loading .bx-face{transform:translateY(-118%) rotate(-3deg); opacity:0}
+.slot.loading .box{transform:translateY(-118%) rotate(-3deg); opacity:0}
 /* ---- the chooser at phone width ----
    Two changes, and the second is the one that matters. The name column goes, because
    74px of it out of 343 is a quarter of the screen spent on three characters. And the

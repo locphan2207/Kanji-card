@@ -387,8 +387,10 @@ function deckBox(d, vol) {
     `${d.group}${GROUP_EN[d.group] ? ` ${GROUP_EN[d.group]}` : ""} ` +
     `${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
     `numbers ${d.lo} to ${d.hi}`);
+  // the two turned-away planes first, so the printed front paints over their edges
   b.innerHTML =
-    `<span class="bx-face">
+    `<span class="bx-top"></span><span class="bx-side"></span>
+     <span class="bx-face">
        <span class="bx-pat"></span>
        <span class="bx-series">${d.group}ドリル</span>
        <span class="bx-plate">
