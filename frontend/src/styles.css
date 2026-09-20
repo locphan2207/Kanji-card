@@ -6,13 +6,23 @@ img{max-width:100%}
 
 :root{
   --desk:#D6D1C4; --desk-2:#C6C0B0;
-  --stock:#FCFAF4; --stock-2:#F5F1E6; --edge:#BDB6A4;
+  /* the neutral stock, before a series is printed on it. --paper and the -0 greys are
+     the untinted values a series mixes into; the names without the suffix are what
+     everything paints with, so a series only has to restate those. */
+  --paper:#FCFAF4; --paper-2:#F5F1E6;
+  --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE; --ghost-0:#E3DFD5;
+  --stock:var(--paper); --stock-2:var(--paper-2);
+  --edge:var(--edge-0); --rule:var(--rule-0);
+  --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0);
   --ink:#16161A; --ink-2:#55524B; --ink-3:#8B857A;
-  --rule:#8E897D; --rule-soft:#C2BCAE; --ghost:#E3DFD5;
   --shadow:0 1px 2px rgba(50,44,32,.16), 0 14px 30px -10px rgba(50,44,32,.38);
   --ui:#4A453C;
-  /* the deck boxes. A box is cream stock in either theme, so the pattern ink and
-     the seal are stated once; only what the box casts onto the desk changes. */
+  /* the deck boxes. A box is cream stock in either theme, so the seal is stated once
+     and only what the box casts onto the desk changes. The 和柄 ground is the one thing
+     on a box that is not — it is printed in the series' ink further down, and this is
+     the grey it was printed in before there were series, kept as the fallback: where
+     color-mix() is not understood every declaration below falls back to the value it
+     shadows, and this is the one --pat would otherwise have nothing to fall back to. */
   --pat:rgba(22,22,26,.13); --shu:#B2402A; --box-shade:rgba(52,44,30,.42);
   /* One face throughout. Klee One is a pen/textbook design, so its letterforms agree with
      the KanjiVG skeleton the stroke strip draws — a mincho would disagree with it (花's 艹
@@ -25,17 +35,79 @@ img{max-width:100%}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --desk:#1A1714; --desk-2:#0E0C0A;
-    --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+    --paper:#F7F3EA; --paper-2:#EDE8DB; --edge-0:#A79E8A;
     --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
     --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
   }
 }
 :root[data-theme="dark"]{
   --desk:#1A1714; --desk-2:#0E0C0A;
-  --stock:#F7F3EA; --stock-2:#EDE8DB; --edge:#A79E8A;
+  --paper:#F7F3EA; --paper-2:#EDE8DB; --edge-0:#A79E8A;
   --shadow:0 2px 5px rgba(0,0,0,.55), 0 26px 52px -14px rgba(0,0,0,.75);
   --ui:#BCB4A6; --box-shade:rgba(0,0,0,.66);
 }
+
+/* ============ the three series, each on its own stock ============
+   A workbook series is the same design printed on a different coloured cover per volume,
+   and that is what this is. Each series states two values: --wash, the stock it is
+   printed on, and --spot, the second ink everything printed on that stock is mixed
+   from — the 和柄 ground, the hairlines, the tracing ghost in the practice strip.
+   Nothing mixes into --ink or --shu: the words stay black and the 印 stays 朱 in all
+   three, because those are what the card is. Only the stock changes, which is the same
+   thing as saying only the deck changes.
+
+   What keeps it from getting loud is that colour appears only where something already
+   was. There is no new element anywhere below — the ground, the rules and the ghost were
+   neutral greys and are tinted ones now, and the stock was already a colour, just a
+   cream one. The deck label is where that rule shows: it is a slip of paper pasted onto
+   the box, so it stays on the plain stock, and the coloured ground makes it read more
+   like a pasted label than it did on cream. The desk keeps out of it too — the desk is
+   the room the cards are in, not one of them.
+
+   Two values and not one, because ink and stock are separate choices. The ink is
+   saturated, since it is mixed into warm greys and a grey eats chroma: a muted ink into
+   a muted grey came out as the grey. The wash is the same hue at the paper's own
+   lightness, so the stock changes colour without changing how dark it is — mixing the
+   ink into the paper instead made each deck's card as much darker as its ink happened
+   to be, which is a difference nobody chose.
+
+   The three inks are a progression, not three unrelated hues, because the rows are
+   stacked and read in order:
+     ひらがな 藍     — 青海波 has 青 in its name; the wave pattern in indigo.
+     カタカナ 青磁   — celadon, the glaze 鱗 (scale armour) is drawn in.
+     漢字     山吹   — gold, which is what makes 格子 read as the 方眼紙 the practice is
+                       done on rather than as brown lines, and the kanji card as the
+                       parchment a workbook is printed on. */
+[data-cat]{
+  --rim:color-mix(in srgb,var(--spot) 70%,var(--edge-0));
+  --edge:var(--rim);
+  --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
+  --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
+  --ghost:color-mix(in srgb,var(--spot) 36%,var(--ghost-0));
+}
+/* A box is the coloured object; a card is not. The box is the packaging, seen once,
+   from across a grid of sixteen, and it can afford to be printed on coloured stock.
+   The card is read for minutes at a time, and a wash across the whole of it turned
+   the paper into a surface with a colour rather than paper. So the card keeps the
+   cream it always had, and the series shows on its edge — which is where a deck shows
+   its colour anyway. A stack of cards presents its edges and nothing else, and the
+   piles here are built from real offset layers, so the draw pile and the discard both
+   come out striped in the series' colour without anything being drawn for them. */
+[data-cat] .slot{
+  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
+}
+/* Thick enough to read as the painted edge of card stock rather than as a keyline, in
+   cqw like everything else so it is the same drawing at any size. It eats into the
+   face's content box and so shrinks every cqw inside it by about 0.85% — the whole
+   card, uniformly, which is the rim being the edge of the stock rather than a frame
+   drawn on top of it. */
+[data-cat] .face{border-width:.4cqw}
+[data-cat] .layer{border-width:1.5px}
+[data-cat="hiragana"]{--spot:#1B4F8A; --wash:#CCDDEB}
+[data-cat="katakana"]{--spot:#2E7F66; --wash:#CDE6DA}
+[data-cat="kanji"]   {--spot:#B07A16; --wash:#F3E1B6}
+
 *{box-sizing:border-box}
 /* A minimum, not a height. The body centres its content, and a centred flex container
    that is shorter than what it holds overflows in both directions — on a phone the
@@ -64,6 +136,11 @@ body{
   --card-w:min(94vw,680px); --pile-w:calc(var(--card-w) * .4);
   display:flex; flex-direction:column; align-items:center; gap:26px;
 }
+/* The chooser is replaced in one frame, so without this the deal starts on a hard cut
+   from a shelf of boxes to a bare table. Fading the table up under the cards already in
+   flight makes the box the thing they came out of. */
+.table.dealing{animation:dealin .3s ease both}
+@keyframes dealin{from{opacity:0} to{opacity:1}}
 .stage{position:relative; width:var(--card-w)}
 /* perspective on .dealer so the flip still reads as 3D while .dealer carries the flight */
 .dealer{perspective:1700px; position:relative; z-index:1}
@@ -369,14 +446,16 @@ body{
    second is the first, larger, rather than the same small box with the type left behind
    at the size it was set for a mouse. */
 .slot{
+  --bx-d:6.5cqw;                /* the projected depth of the box */
   position:relative; width:132px; aspect-ratio:132/107; flex:0 0 auto;
   container-type:inline-size;
 }
 .box{
-  position:absolute; left:0; top:0; width:100%; height:79.55cqw;
+  position:absolute; left:0; top:0; width:100%; height:78.18cqw;
   background:none; border:none; padding:0; cursor:pointer; color:inherit;
   -webkit-tap-highlight-color:transparent;
-  transform:translateY(0); transition:transform .17s cubic-bezier(.2,.86,.3,1);
+  transform:translateY(0);
+  transition:transform .17s cubic-bezier(.2,.86,.3,1), opacity .32s;
 }
 /* A finger cannot hover. On a touchscreen :hover sticks to whatever was tapped last,
    so the lift is a pointer's feedback and the press below is everyone's. */
@@ -385,16 +464,49 @@ body{
 }
 .box:active{transform:translateY(-1.5cqw); transition-duration:.07s}
 .box:focus-visible{outline:none}
-.box:focus-visible .bx-lid{outline:2px solid var(--ink); outline-offset:3px}
+.box:focus-visible .bx-face{outline:2px solid var(--ink); outline-offset:3px}
 
-.bx-lid{
-  position:absolute; left:0; top:0; width:100%; height:75.76cqw;
-  border-radius:2.3cqw 2.3cqw 1.5cqw 1.5cqw; overflow:hidden;
+/* ---- the box as a solid ----
+   A card box is a box, so it is drawn as one: the printed front, the top, and the left
+   wall, in cabinet projection. --bx-d is the projected depth, and the front gives up
+   exactly that much width and height, so the whole solid still occupies the footprint
+   the flat drawing had.
+
+   It recedes up and to the left because that is the direction the deck recedes on the
+   table: the piles stack their layers up-left, so a pile shows its card edges along its
+   top and left. A box that showed them on the right would be the same object turned two
+   different ways on two screens.
+
+   The two walls are 2D skews, not 3D rotations, and that is the whole reason this is
+   usable. Rotating the front in 3D was tried first and it is the obvious way to do it —
+   but a 3D-transformed element is rasterised once and resampled, and at 132px 漢字ドリル
+   and 第993–2136番 came out as mush. Skewing only the walls leaves the front untouched,
+   so every glyph on it is drawn at the device's own resolution. It also keeps what was
+   true before: no perspective, no 3D context, no compositing layer per box, and a hover
+   that is still one translate. */
+.bx-face{
+  position:absolute; left:var(--bx-d); top:var(--bx-d); width:calc(100% - var(--bx-d));
+  height:68.18cqw;
+  container-type:inline-size;   /* the printing is measured against the front, not the slot */
+  border-radius:.8cqw; overflow:hidden;
   background:linear-gradient(157deg,var(--stock),var(--stock-2));
   border:1px solid var(--edge);
-  box-shadow:0 1px 2px rgba(50,44,32,.2), inset 0 1px 0 rgba(255,255,255,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
   font-family:var(--jp); color:var(--ink); text-align:left; line-height:1;
-  transition:transform .32s cubic-bezier(.4,0,.6,1), opacity .32s;
+}
+.bx-top,.bx-side{position:absolute; border:1px solid var(--edge); background-color:var(--stock)}
+/* the top, sheared back and to the left off the front's top edge */
+.bx-top{
+  left:var(--bx-d); top:0; width:calc(100% - var(--bx-d)); height:var(--bx-d);
+  transform-origin:0% 100%; transform:skewX(45deg);
+  background-image:linear-gradient(to top,rgba(255,255,255,.34),rgba(255,255,255,.06));
+}
+/* the left wall, sheared to meet it. Shaded warm rather than with neutral black, so a
+   turned-away face is the same box in shadow and not a grey one. */
+.bx-side{
+  left:0; top:var(--bx-d); width:var(--bx-d); height:68.18cqw;
+  transform-origin:100% 0%; transform:skewY(45deg);
+  background-image:linear-gradient(to left,rgba(58,42,18,.15),rgba(58,42,18,.33));
 }
 /* the tuck flap: a second thickness of card folded over the top. Tinting it and
    giving its edge a hairline plus a sliver of cast shadow is the whole trick, and
@@ -406,16 +518,7 @@ body{
   border-bottom:1px solid var(--rule-soft);
   box-shadow:0 1px 0 rgba(255,255,255,.72), 0 4px 5px -4px rgba(40,32,18,.55);
 }
-/* the box's own front face: the one place its depth shows. Every box is the same
-   size, so this is the same sliver on all fourteen. */
-.bx-depth{
-  position:absolute; left:1.5cqw; right:1.5cqw; top:75.76cqw; height:3.8cqw;
-  border:1px solid var(--edge); border-top:none; border-radius:0 0 2.3cqw 2.3cqw;
-  background-color:var(--stock);
-  background-image:
-    linear-gradient(to bottom,rgba(0,0,0,.24),rgba(0,0,0,.03) 40%,rgba(0,0,0,.26)),
-    repeating-linear-gradient(to bottom,transparent 0 1.5px,rgba(60,50,30,.3) 1.5px 2.5px);
-}
+
 /* a gradient, not a blur filter: a blur is re-rasterised every time the thing above
    it moves, a gradient is painted once and then only scaled and faded. */
 .bx-shade{
@@ -433,8 +536,16 @@ body{
    pasted over it. The series line stays outside the label, up on the flap, so the
    pattern reads as the box rather than as a border drawn round a card. */
 .bx-pat{position:absolute; inset:0; z-index:0}
+/* Each ground states its own ink strength rather than the three sharing one, because
+   they do not cover the box equally: 青海波 is a field of thin arcs, 鱗 is solid
+   triangles that fill half of it, and 格子 is a grid of single pixels. At one alpha the
+   katakana boxes printed twice as heavy as the kanji ones, which read as the series
+   being louder rather than as the pattern being denser — and the pattern being denser
+   was the only thing true. What is matched here is how dark the box looks, not what
+   the ink is set to. */
 /* 青海波 - two arc layers offset by half a tile, which is how the pattern is laid */
-.bx-pat.g0{
+[data-cat="hiragana"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 38%,transparent);
   --arc:repeating-radial-gradient(circle at 50% 100%,
     transparent 0 calc(var(--ps) * .17), var(--pat) calc(var(--ps) * .17) calc(var(--ps) * .205),
     transparent calc(var(--ps) * .205) calc(var(--ps) * .5));
@@ -443,14 +554,16 @@ body{
   background-position:0 0, calc(var(--ps) / 2) calc(var(--ps) / 4);
 }
 /* 鱗 */
-.bx-pat.g1{
+[data-cat="katakana"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 19%,transparent);
   background-image:
     linear-gradient(135deg,var(--pat) 25%,transparent 25%),
     linear-gradient(225deg,var(--pat) 25%,transparent 25%);
   background-size:var(--ps) var(--ps);
 }
 /* 格子 - which on the kanji boxes reads as 方眼紙, the paper the practice is done on */
-.bx-pat.g2{
+[data-cat="kanji"] .bx-pat{
+  --pat:color-mix(in srgb,var(--spot) 36%,transparent);
   background-image:
     repeating-linear-gradient(to right,var(--pat) 0 1px,transparent 1px var(--ps)),
     repeating-linear-gradient(to bottom,var(--pat) 0 1px,transparent 1px var(--ps));
@@ -459,12 +572,15 @@ body{
   position:absolute; left:8.33cqw; top:6.8cqw; z-index:2;
   font-size:5.7cqw; letter-spacing:.16em; color:var(--ink-2);
 }
+/* The label is a slip of paper pasted onto the box, not part of the box, so it is
+   printed on the plain stock while the ground around it carries the series' tint. That
+   is also what keeps every deck name black on cream: the colour never gets under type. */
 .bx-plate{
   position:absolute; left:9.85cqw; right:9.85cqw; top:33%; bottom:6.06cqw; z-index:2;
-  background:linear-gradient(180deg,var(--stock),var(--stock-2));
+  background:linear-gradient(180deg,var(--paper),var(--paper-2));
   border:1px solid var(--rule);
   /* the workbook cover's double rule, and the lift of a label pasted on */
-  box-shadow:inset 0 0 0 1.14cqw var(--stock), inset 0 0 0 1.9cqw var(--rule-soft),
+  box-shadow:inset 0 0 0 1.14cqw var(--paper), inset 0 0 0 1.9cqw var(--rule-soft),
              0 1px 3px rgba(40,32,18,.24);
 }
 .bx-nm{
@@ -494,8 +610,12 @@ body{
 
 .groups.busy .box{cursor:progress}
 .groups.busy .slot:not(.loading) .box{opacity:.45}
-/* picking a deck takes the lid off it */
-.slot.loading .bx-lid{transform:translateY(-118%) rotate(-3deg); opacity:0}
+/* Picking a deck opens the box rather than removing it: the top lifts off along the axis
+   the box recedes on, and the deck that was inside is what carries on to the table —
+   dealFromBox in app.js flies it from here to the pile. The box itself never goes
+   anywhere; the chooser it is standing in is simply replaced once the lid is off. */
+.bx-top{transition:transform .26s cubic-bezier(.3,.75,.35,1), opacity .26s}
+.slot.loading .bx-top{transform:translate(-5cqw,-11cqw) skewX(45deg); opacity:0}
 /* ---- the chooser at phone width ----
    Two changes, and the second is the one that matters. The name column goes, because
    74px of it out of 343 is a quarter of the screen spent on three characters. And the
@@ -532,7 +652,6 @@ body{
 }
 .relevel:hover{opacity:.9}
 .relevel:focus-visible{outline:2px solid var(--ink); outline-offset:3px; opacity:.9}
-
 
 /* ============ the kana card ============
    Same stock, same practice strip, same shadow as a kanji card — it is the same physical

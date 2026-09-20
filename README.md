@@ -102,7 +102,29 @@ front-up (unstudied), the discard holds them readings-up (finished). So drawing 
 flip, and discarding does — turning the card over is the act of finishing with it.
 
 **Flight paths are measured at runtime**, centre-to-centre between the card's box and the
-pile's box, so they stay correct at any viewport and would survive moving the piles.
+pile's box, so they stay correct at any viewport and would survive moving the piles. A
+flyer is always built at the size of where it *lands* and animated back from where it came
+— a flight that finishes on its target's own box cannot land crooked however the viewport
+is sized.
+
+**Picking a deck deals it.** The lid lifts off the box where the box is standing, the
+table fades up in the chooser's place, and the deck that was inside flies over: six cards
+stack up as the pile, and one carries on to the stage. The two overlap rather than queue.
+Dealing the pile first and the stage card after was the obvious order and it left the top
+two-thirds of the screen empty for the length of the deal, which reads as a broken layout
+rather than as a deal.
+
+The cards in flight are real cards — `makeFlyer` paints them with the same code the pile
+and the table use — and they are the actual indices from the top of the shuffled deck, so
+the card you watch land is the card sitting there when it stops. That is also why they are
+dealt back to front: `deck[0]` is the pile's top card, so it has to be the last one down.
+Six, because the pile is five layers deep and a sixth reads as "and the rest".
+
+The pile and the stage card are held hidden and revealed underneath the flyers that land
+on them. Since a flyer finishes on exactly the box the real thing occupies, the swap has
+nothing to show. `busy` is held for the length of it, so the pile cannot be drawn from
+before it has arrived, and `prefers-reduced-motion` skips the whole thing — the table is
+simply there.
 
 **Reading classification.** Each compound is tagged `on` / `kun` / `irr` by checking
 whether its reading contains one of the kanji's readings, allowing for rendaku
@@ -119,12 +141,38 @@ on-reading is a phonetic series, which is the pairing worth showing, so it score
 
 **A deck is a box, and the boxes are all the same size.** The chooser used to show a deck
 as a small card with its name on it, which said nothing a line of text could not. A deck
-of cards comes in a box, so it is drawn as one. Two details do the whole job of saying
-"box" rather than "card": the tuck flap folded over the top — tinted, with a hairline and
-a sliver of cast shadow at its edge — and the sliver of the box's own front face along the
-bottom. A thumb notch was tried and taken off: it is the right detail on a real box and it
-took a bite out of every label. Nothing is tilted and nothing is a 3D context, so a hover
-is one `translateY` on the compositor and no script runs at all.
+of cards comes in a box, so it is drawn as one — as a solid, not as a picture of one.
+The printed front, the top and the left wall, in cabinet projection, at the footprint the
+flat drawing always had: the front gives up exactly the projected depth in width and
+height, so a box occupies its slot the way it did before it had volume.
+
+It recedes up and to the left because that is the direction the deck recedes on the table.
+The piles stack their layers up-left, so a pile shows its card edges along its top and
+left; a box that showed its depth on the right would be the same object turned two
+different ways on two screens.
+
+**The walls are 2D skews, and that is the whole reason this is usable.** Rotating the
+front in 3D was tried first and it is the obvious way to build a box: `preserve-3d` on the
+button, `rotateX`/`rotateY`, a wall hinged on each edge. It looks right and it destroys the
+type. A 3D-transformed element is rasterised once and then resampled, and at 132px that
+turns 漢字ドリル and 第993–2136番 into mush — the deck's name, which is the one thing the
+chooser exists to show. Skewing only the two turned-away walls leaves the front
+untransformed, so every glyph on it is drawn at the device's own resolution. It also keeps
+what was true of the flat version: no perspective, no 3D context, no compositing layer per
+box, and a hover that is still one `translateY`.
+
+The front is a container of its own, so the printing is measured against the front rather
+than against the slot. That is what lets the depth be a single number: change `--bx-d` and
+the front, both walls and everything printed on the front resize together.
+
+Two earlier attempts got this wrong. The first drew a landscape panel with a sliver along
+its foot and printed the sliver with a repeating 1.5px rule to suggest depth — but evenly
+spaced cut edges are the picture of *a pile of cards*, so the one detail meant to say "box"
+was the detail saying "stack". The second replaced the sliver with a lid sitting in a
+tray, which reads as a container, but the container it reads as is a gift box. Both were
+drawing a box flat and hoping a detail would carry it. Nothing had to carry it once the
+box was actually drawn as a solid. A thumb notch was tried and taken off as well — the
+right detail on a real box, but it took a bite out of every label.
 
 **What is printed on a box is the deck's own data.** A 和柄 ground says which of the three
 series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for
@@ -141,9 +189,66 @@ deck has no cards of its own to measure, so it takes the span of its parts — `
 for ひらがな 全部, which is the only line on the box that says outright that it holds
 everything the four beside it do.
 
-The 印 stamped with the volume numeral is the only colour anywhere in the app. 全部 is
-stamped 全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's
-omnibus is not volume five.
+The 印 stamped with the volume numeral is 朱 on every box in every series. 全部 is stamped
+全 instead: it gathers 巻一 to 巻四 rather than following them, and a boxed set's omnibus is
+not volume five.
+
+**A series is printed on its own stock.** A workbook series is the same design on a
+different coloured cover per volume, and that is what the three categories are — 藍 for
+ひらがな, because 青海波 has 青 in its name; 青磁 for カタカナ, the glaze 鱗 (scale armour)
+is drawn in; 山吹 for 漢字, gold, which is what makes 格子 read as the 方眼紙 the practice
+is done on rather than as brown lines. They are a progression rather than three unrelated
+hues, because the rows are stacked and read in order.
+
+A series states two values, `--spot` and `--wash`, because ink and stock are two
+different choices. The ink is saturated, since it is mixed into warm greys and a grey
+eats chroma — a muted ink mixed into a muted grey came out as the grey, which was the
+first attempt and looked like nothing had been done. The wash is the same hue at the
+paper's own lightness, so the stock changes colour without changing how dark it is;
+mixing the ink into the paper instead made each deck's card as much darker as its ink
+happened to be, which is a difference nobody chose. Everything else is mixed from those
+two, so a series is two lines of CSS and the rest follows.
+
+**A box is the coloured object. A card is not.** The box is packaging: seen once, from
+across a grid of sixteen, at 132px, and it can afford to be printed on coloured stock.
+The card is read for minutes at a time, and the same wash across the whole of it turned
+the paper into a surface with a colour on it rather than into paper. So the card keeps
+the cream it always had, and the series shows **on its edge** — which is where a deck
+shows its colour anyway. A stack of cards presents its edges and nothing else.
+
+That last part is not a metaphor here. The piles are built from real offset layers, one
+per card, so colouring the edge makes the draw pile and the discard come out striped in
+the series' colour with nothing drawn for them — the deck shows what it is the same way
+a physical deck does, by being stacked. It is the best argument for the edge over the
+alternatives that were tried: a tinted practice strip (which read as a highlighted row
+and cost the tracing ghost its contrast), a band across the head or a bled edge down the
+spine (both of which read as interface rather than as print), and a corner index (which
+collides with the big character on both backs).
+
+So on a card the colour lands on the rim, the hairlines and the tracing ghost, and
+nowhere as a field. This is the strictest form of the rule the whole scheme runs on:
+**colour appears only where a grey already was.** The rim was a 1px `--edge`, the rules
+were `--rule` and `--rule-soft`, the ghost was `--ghost` — all of them neutral greys, all
+of them tinted ones now, and not one new element on the card. The desk keeps out of it
+too, because the desk is the room the cards are in, not one of them.
+
+The rim is stated in `cqw` like everything else, so it is the same drawing at any size.
+It eats into the face's content box, which shrinks every `cqw` measurement inside it by
+about 0.85% — the whole card, uniformly. That is the rim being the edge of the stock
+rather than a frame drawn on top of it.
+
+**The three grounds do not take the same amount of ink.** 青海波 is a field of thin arcs,
+鱗 is solid triangles that fill half the box, and 格子 is a grid of single pixels. Given
+one alpha, the katakana boxes printed twice as heavy as the kanji ones, which read as that
+series being louder rather than as that pattern being denser — and only the second was
+true. So each ground states its own strength: what is matched across the three is how dark
+the box looks, not what the ink is set to.
+
+The colour earns most at phone width, which is not where it was designed. On a desktop the
+three rows are stacked with their names beside them and you can see all sixteen boxes at
+once. On a phone the name column is gone, the rows are two boxes wide and a screen apart,
+and the thing that tells you which series you are scrolling through is that the boxes went
+from blue to green.
 
 **A box is measured against its own width, like the card.** Every position printed on a
 box is in `cqw` against the slot — 132px wide is 100cqw, so 11px of margin is 8.33cqw and
