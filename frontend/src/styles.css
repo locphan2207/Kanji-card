@@ -89,10 +89,11 @@ img{max-width:100%}
      漢字     山吹   — gold, which is what makes 格子 read as the 方眼紙 the practice is
                        done on rather than as brown lines, and the kanji card as the
                        parchment a workbook is printed on. */
-/* A card comes out of a box, so it is printed on the same stock the box is: --stock is
-   set once here, for the whole scope, and the box, the card, the pile layers and the
-   card in flight all take it from the same place. It used to be set on .slot alone,
-   which is what made a card cream inside a coloured box.
+/* A card comes out of a box, so it is printed on the same stock the box is — at a
+   lighter weight, for the reason given on .slot below. --stock is stated here for the
+   card, and the card, the pile layers and the card in flight all take it from this one
+   place. It used to be stated on .slot alone, which is what made a card cream inside a
+   coloured box.
 
    Carrying the series in the stock is what lets the edge go back to being an edge. It
    was a .4cqw painted rim before — thick enough to read as the cut edge of coloured
@@ -102,14 +103,26 @@ img{max-width:100%}
    the box's own front has. The piles still come out striped in the series' colour,
    because they are built from real offset layers and the layers are this stock. */
 [data-cat]{
-  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
-  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
+  --stock:color-mix(in srgb,var(--wash) 40%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 48%,var(--paper-2));
   --edge:color-mix(in srgb,var(--spot) 70%,var(--edge-0));
   --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
   --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
-  /* the ground the head band is printed on: the wash pulled a step further towards the
-     ink, so the band is the same colour the card is, printed heavier */
+  /* the ground the head band is printed on: the wash pulled a step past full strength
+     towards the ink, so the band reads as printed on the card's own colour rather than
+     applied to it — and stays a clear step darker than a card at 40% of that wash */
   --band:color-mix(in srgb,var(--spot) 13%,var(--wash));
+}
+/* The box keeps the wash at full strength; the card takes it at 40%. They are the same
+   colour at two weights, because they are not the same object: a box is packaging, seen
+   once from across a grid of sixteen at 132px, where the wash is what carries the series
+   across the screen. A card is read for minutes at a time, and the wash that reads as a
+   printed cover reads as a coloured surface once it is the page. 40% is where the stock
+   still says plainly which deck this is, the black type keeps its bite, and the band
+   stays well clear of the card it is printed on. */
+[data-cat] .slot{
+  --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
+  --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
 }
 [data-cat="hiragana"]{--spot:#1B4F8A; --wash:#CCDDEB}
 [data-cat="katakana"]{--spot:#2E7F66; --wash:#CDE6DA}
@@ -308,14 +321,23 @@ body{
 .card:hover .turn{opacity:1}
 
 /* card back — the same six words, but grouped by which reading they use.
-   The kanji's readings appear once, as the group headings, so nothing repeats the front. */
+   The kanji's readings appear once, as the group headings, so nothing repeats the front.
+
+   The header sits 1.4cqw lower than it did, which is the head band being the top of the
+   card now rather than the stock's own edge — at 5cqw, the same height the kana back
+   starts its own character at, because both backs are the same card. All of that came
+   from the air above the rule, none from the list below it: 傲 (#2042) is the tightest
+   card in the jōyō set and leaves .bk-groups 0.83cqw of slack, so the rule and
+   everything under it stay where they were. What is left above the rule is about
+   1.2cqw of clear stock against 1.8cqw under the band, which is the band being a solid
+   and the rule a hairline: the heavier edge takes the wider gap. */
 .back .bk-k{
-  position:absolute; left:6.5cqw; top:3.6cqw; font-family:var(--jp);
+  position:absolute; left:6.5cqw; top:5cqw; font-family:var(--jp);
   font-size:9.5cqw; font-weight:var(--jp-bold); line-height:1;
   -webkit-text-stroke:calc(var(--glyph-edge) * .4) currentColor;
 }
 .back .bk-m{
-  position:absolute; left:19cqw; top:9.4cqw; font-family:var(--latin);
+  position:absolute; left:19cqw; top:10.8cqw; font-family:var(--latin);
   font-size:2.7cqw; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2);
 }
 .back hr{
@@ -737,8 +759,12 @@ body{
    part of asking which reading each compound takes. A kana card asks what one character
    sounds like. The character and how to write it is the whole question; the words, the
    lookalikes and the syllabary position are the answer, and the answer is on the back. */
+/* The box begins below the band rather than under it — the glyph is centred in here, so
+   it was never actually painted over, but a box the band overlaps is one bad font away
+   from being clipped by it. The foot stays where it was, so the character keeps its
+   place between the band and the practice strip. */
 .kn-glyph{
-  position:absolute; left:0; right:0; top:3cqw; height:41cqw;
+  position:absolute; left:0; right:0; top:4cqw; height:40cqw;
   display:flex; align-items:center; justify-content:center; white-space:nowrap;
   font-family:var(--jp); font-size:38cqw; font-weight:var(--jp-bold); line-height:1;
   color:var(--ink);
@@ -767,32 +793,35 @@ body{
    dozen kana whose behaviour neither of those explains — a note, in the space a kanji
    card's back leaves empty. Then the facts, then the same six words with their romaji. */
 .kn-c{
-  position:absolute; left:6.5cqw; top:3.4cqw;
+  position:absolute; left:6.5cqw; top:5cqw;
   font-family:var(--jp); font-size:11cqw; font-weight:var(--jp-bold); line-height:1;
   -webkit-text-stroke:calc(var(--glyph-edge) * .4) currentColor;
 }
-.kn-c.two{font-size:8cqw; top:5cqw}
+.kn-c.two{font-size:8cqw; top:6.6cqw}
 .kn-rom{
-  position:absolute; left:22.5cqw; top:3.9cqw;
+  position:absolute; left:22.5cqw; top:5.5cqw;
   font-family:var(--latin); font-weight:300; font-size:6.8cqw; line-height:1;
   letter-spacing:.05em; text-transform:uppercase; color:var(--ink);
 }
-.kn-rom.long{font-size:4.3cqw; top:6.2cqw}
+.kn-rom.long{font-size:4.3cqw; top:7.8cqw}
 .kn-alt{
-  position:absolute; left:23cqw; top:11.6cqw;
+  position:absolute; left:23cqw; top:13.2cqw;
   font-family:var(--latin); font-size:2.3cqw; letter-spacing:.12em; color:var(--ink-3);
 }
 .kn-note{
-  position:absolute; left:47cqw; right:12cqw; top:4cqw;
+  position:absolute; left:47cqw; right:12cqw; top:5.6cqw;
   font-family:var(--latin); font-size:2.15cqw; line-height:3.2cqw; color:var(--ink-2);
 }
-.back.kn hr{top:16.2cqw}
+/* The header block, this rule and the body below it all move down together by 1.6cqw,
+   so the kana back keeps its proportions and only its head margin changes. The body can
+   afford it: the fullest card in either syllabary leaves it 3.95cqw of slack. */
+.back.kn hr{top:17.8cqw}
 /* facts then words, in flow rather than pinned: ー has no row in the gojuon table, no
    源 kanji and no counterpart, so its card should close the gap rather than leave a hole.
    The box itself is pinned top and bottom, though, so every row that goes in it states its
    own height rather than taking one from the font — see the note on .kn-words. */
 .kn-body{
-  position:absolute; left:6.5cqw; right:6.5cqw; top:17.6cqw; bottom:2.4cqw;
+  position:absolute; left:6.5cqw; right:6.5cqw; top:19.2cqw; bottom:2.4cqw;
   display:flex; flex-direction:column; gap:2.4cqw;
 }
 .kn-facts{display:flex; flex-direction:column; gap:.35cqw}
