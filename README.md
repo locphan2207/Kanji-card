@@ -2,7 +2,7 @@
 
 A single-screen Japanese study app built as a card table: a face-up draw pile, the card
 you are studying, and a face-down-ish discard. Draw a card, study it, turn it over to
-check the answer, draw again.
+check the answer, draw again. Click the discard to take the last one back.
 
 The kanji card is modelled on a physical Japanese 漢字ドリル card — landscape, with a
 numbered list of compounds, a cross-reference box, a code line, and a practice strip. The
@@ -100,6 +100,26 @@ it (花's 艹 is one connected bar in print, separate strokes by hand).
 **Both faces carry content, so the deck has no generic back.** The draw pile holds cards
 front-up (unstudied), the discard holds them readings-up (finished). So drawing does not
 flip, and discarding does — turning the card over is the act of finishing with it.
+
+**The discard is the way back.** Clicking it takes the last card you finished with off the
+top and deals it to the table, and the card that was on the table goes back on top of the
+draw pile — so a draw taken by mistake, or a card turned over before you had really
+answered it, costs one click rather than a lap of the whole deck. `revertCard` is
+`drawCard` with the two piles swapped: `used.pop()` where the draw took `deck.shift()`,
+`deck.unshift()` where the draw pushed onto the discard. Putting it back on *top* is what
+makes it an undo rather than a reshuffle — the next draw deals the same card again.
+
+It comes back readings-up, because that is how it was lying. The discard holds cards
+readings-up and a card sliding off a pile does not turn over on the way, which is the same
+rule that has drawing not flip; and going back to a card you have just finished with is
+going back to look at its answer. `f` turns it to the question again. The card travelling
+the other way unflips for the same reason: the draw pile holds cards front-up, so putting
+one back is exactly the turn that discarding it made, run backwards.
+
+The discard is a `<button>` that is disabled while it is empty, rather than one that does
+nothing when pressed — there is no way back from the first card of a deal, and the pile
+says so by not offering itself. The same fact drives the third line of the hint, which
+only appears once there is something behind you to go back to.
 
 **Flight paths are measured at runtime**, centre-to-centre between the card's box and the
 pile's box, so they stay correct at any viewport and would survive moving the piles. A
@@ -443,4 +463,4 @@ jōyō kanji it does not cover are placed by school grade.
   card numbers are already shared — あ and ア are both 1 — so a mixed deck would number
   consistently, but it would also deal the same syllable twice in two costumes, which is
   a different exercise and wants thinking about before it is a deck.
-- **Drag to draw.** The pile responds to click only.
+- **Drag to draw.** Both piles respond to click only.
