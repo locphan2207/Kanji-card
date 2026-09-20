@@ -263,8 +263,8 @@ different ways on two screens.
 **The walls are 2D skews, and that is the whole reason this is usable.** Rotating the
 front in 3D was tried first and it is the obvious way to build a box: `preserve-3d` on the
 button, `rotateX`/`rotateY`, a wall hinged on each edge. It looks right and it destroys the
-type. A 3D-transformed element is rasterised once and then resampled, and at 132px that
-turns 漢字ドリル and 第993–2136番 into mush — the deck's name, which is the one thing the
+type. A 3D-transformed element is rasterised once and then resampled, and at the size a
+box is printed that turns 漢字ドリル and 第993–2136番 into mush — the deck's name, which is the one thing the
 chooser exists to show. Skewing only the two turned-away walls leaves the front
 untransformed, so every glyph on it is drawn at the device's own resolution. It also keeps
 what was true of the flat version: no perspective, no 3D context, no compositing layer per
@@ -321,8 +321,8 @@ two, so a series is two lines of CSS and the rest follows.
 **A card is printed on the stock its box is, at 40% of the weight.** The box no longer
 owns the colour; the series does, and a card that comes out of an indigo box is an
 indigo card. But a box and a card are not the same object, so the wash is not applied at
-the same strength to both. A box is packaging, seen once from across a grid of sixteen
-at 132px, and the wash at full strength is what carries the series across that screen. A
+the same strength to both. A box is packaging, seen once from across a grid of sixteen,
+and the wash at full strength is what carries the series across that screen. A
 card is read for minutes at a time, and the same wash, once it is the page rather than
 the cover, stops being a stock with a colour and becomes a coloured surface. So
 `[data-cat]` states the card's stock at 40% and `[data-cat] .slot` restates the box's at
@@ -430,16 +430,30 @@ and the thing that tells you which series you are scrolling through is that the 
 from blue to green.
 
 **A box is measured against its own width, like the card.** Every position printed on a
-box is in `cqw` against the slot — 132px wide is 100cqw, so 11px of margin is 8.33cqw and
-the ground's tile scales with it too. The box's own geometry is measured that way as well,
-off `--bx-d` and `--card-ar`, so a box is the card's proportion at every width it is
-printed at rather than at the one it was drawn at. This is what lets the chooser be laid out for a
-phone by changing nothing but how wide a box is. Under 560px the name column goes, since
-74px of a 343px screen is a quarter of it spent on three characters, and the row stops
-being a queue of 132px boxes with the leftover width sitting beside them: the boxes divide
-the row between them, two to a row on a phone and three by 560px. A box at 165px is the
+box is in `cqw` against the slot — the slot is 100cqw, so 11px of margin on a 132px box is
+8.33cqw and the ground's tile scales with it too. The box's own geometry is measured that
+way as well, off `--bx-d` and `--card-ar`, so a box is the card's proportion at every
+width it is printed at rather than at the one it was drawn at. This is what lets the
+chooser be laid out for a phone by changing nothing but how wide a box is. Under 560px the
+name column goes, since 74px of a 343px screen is a quarter of it spent on three
+characters, and the row stops dividing itself six ways, which on a phone is a box the size
+of a stamp: two boxes divide the row between them, three by 560px. A box at 180px is the
 same drawing as a box at 132px, printed larger — not the same small box with its type left
-at the size it was set for a mouse pointer. The page was also held to `height:100%` while
+at the size it was set for a mouse pointer.
+
+**The box is a sixth of the row, not 132px.** 132px was the width it was drawn at and it
+made a box you could see and a label you could not read: 第1–46番 set at 6.4px, the romaji
+at 5.9px. Six boxes fit a row, so the box takes a sixth of the row's width with the five
+16px gaps taken off first — `max(132px, calc((100% - 80px) / 6))` — and since everything
+on a box is in `cqw`, the whole drawing comes up 36% with it. The chooser's own maximum
+went from 960px to 1248px to give it the room, and the lamp's with it. 1248 is set by what
+is under the row rather than what is beside it: a 180px box is a 142px row, and three of
+those under the heading is the whole chooser on a 768px-tall laptop, which is the point —
+all sixteen boxes at once, without scrolling. The 132px floor is the old width kept as a
+floor, so below about a 1000px screen six stop fitting a line and the row wraps exactly as
+it did before, rather than the boxes shrinking to keep one line. The group name is centred
+against its row now instead of being set 40px down from the top of it: 40px was the middle
+of a 104px-tall box and is nothing in particular once the height comes out of the row. The page was also held to `height:100%` while
 centring its contents, which on a phone put the title and the first row of boxes above the
 top of the document, where no scroll could reach them; it is a `min-height` now.
 
@@ -477,7 +491,7 @@ light one is worse than no switch at all.
 It is a child of `<body>` rather than of either screen, which keeps it in one place while
 the chooser gives way to the table and back, and it is in the flow rather than fixed to a
 corner: the card is `min(94vw,680px)`, so on a phone a corner is the corner of the card.
-It sizes itself to the chooser's 960px rather than the table's 680px so that picking a
+It sizes itself to the chooser's 1248px rather than the table's 680px so that picking a
 deck does not move it — the two screens are different widths and the switch belongs to
 neither.
 
