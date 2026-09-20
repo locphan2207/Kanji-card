@@ -51,9 +51,14 @@
 <!-- Two kinds of card, because they ask different questions. A kanji card asks which
      reading each compound uses, and needs a front dense enough to ask it. A kana card
      asks only what one character sounds like, so its front is the character and how to
-     write it; everything else is the answer, and the answer is on the back. -->
+     write it; everything else is the answer, and the answer is on the back.
+
+     The band at the head of each face is the one thing all four faces share: the 和柄
+     the deck's box is printed with, so a card in the hand says which box it came out
+     of. It is stock, not content, so it carries no text and is hidden from a reader. -->
 <template id="tplKanji">
   <div class="face front">
+    <div class="band wagara" aria-hidden="true"></div>
     <div class="no"></div>
     <div class="glyph"></div>
     <ol class="vocab"></ol>
@@ -63,6 +68,7 @@
     <div class="turn" aria-hidden="true">裏</div>
   </div>
   <div class="face back">
+    <div class="band wagara" aria-hidden="true"></div>
     <div class="no"></div>
     <div class="bk-k"></div>
     <div class="bk-m"></div>
@@ -73,12 +79,14 @@
 
 <template id="tplKana">
   <div class="face front kn">
+    <div class="band wagara" aria-hidden="true"></div>
     <div class="no"></div>
     <div class="kn-glyph"></div>
     <div class="strip"></div>
     <div class="turn" aria-hidden="true">裏</div>
   </div>
   <div class="face back kn">
+    <div class="band wagara" aria-hidden="true"></div>
     <div class="no"></div>
     <div class="kn-c"></div>
     <div class="kn-rom"></div>

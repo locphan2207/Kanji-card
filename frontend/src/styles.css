@@ -15,7 +15,12 @@ img{max-width:100%}
      the untinted values a series mixes into; the names without the suffix are what
      everything paints with, so a series only has to restate those. */
   --paper:#FCFAF4; --paper-2:#F5F1E6;
-  --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE; --ghost-0:#E3DFD5;
+  --edge-0:#BDB6A4; --rule-0:#8E897D; --rule-soft-0:#C2BCAE;
+  /* The tracing ghost, and the one grey a series never touches. It is near enough to
+     neutral to stay grey on all three stocks — the old warm grey was mixed for cream
+     and went tan on the indigo card and pink on the celadon one — and dark enough to
+     stay a step under a washed stock, which is some 25 points of luminance below cream. */
+  --ghost-0:#C6C5C3;
   --stock:var(--paper); --stock-2:var(--paper-2);
   --edge:var(--edge-0); --rule:var(--rule-0);
   --rule-soft:var(--rule-soft-0); --ghost:var(--ghost-0);
@@ -56,18 +61,19 @@ img{max-width:100%}
    A workbook series is the same design printed on a different coloured cover per volume,
    and that is what this is. Each series states two values: --wash, the stock it is
    printed on, and --spot, the second ink everything printed on that stock is mixed
-   from — the 和柄 ground, the hairlines, the tracing ghost in the practice strip.
-   Nothing mixes into --ink or --shu: the words stay black and the 印 stays 朱 in all
-   three, because those are what the card is. Only the stock changes, which is the same
-   thing as saying only the deck changes.
+   from — the 和柄 ground, the hairlines, the band across a card's head.
+   Nothing mixes into --ink, --shu or --ghost: the words stay black, the 印 stays 朱 and
+   the tracing ghost stays grey in all three, because those are what the card is. Only
+   the stock changes, which is the same thing as saying only the deck changes.
 
-   What keeps it from getting loud is that colour appears only where something already
-   was. There is no new element anywhere below — the ground, the rules and the ghost were
-   neutral greys and are tinted ones now, and the stock was already a colour, just a
-   cream one. The deck label is where that rule shows: it is a slip of paper pasted onto
-   the box, so it stays on the plain stock, and the coloured ground makes it read more
-   like a pasted label than it did on cream. The desk keeps out of it too — the desk is
-   the room the cards are in, not one of them.
+   What keeps it from getting loud is that the colour is the stock and the printing on
+   it, and never the thing being read. The deck label is where that shows: it is a slip
+   of paper pasted onto the box, so it stays on the plain stock, and the coloured ground
+   makes it read more like a pasted label than it did on cream. The tracing ghost in the
+   practice strip is the other: it is a guide to draw over, so it is the same neutral
+   grey in all three series — a tinted ghost read as a second ink competing with the
+   stroke being taught. The desk keeps out of it too — the desk is the room the cards
+   are in, not one of them.
 
    Two values and not one, because ink and stock are separate choices. The ink is
    saturated, since it is mixed into warm greys and a grey eats chroma: a muted ink into
@@ -83,32 +89,28 @@ img{max-width:100%}
      漢字     山吹   — gold, which is what makes 格子 read as the 方眼紙 the practice is
                        done on rather than as brown lines, and the kanji card as the
                        parchment a workbook is printed on. */
+/* A card comes out of a box, so it is printed on the same stock the box is: --stock is
+   set once here, for the whole scope, and the box, the card, the pile layers and the
+   card in flight all take it from the same place. It used to be set on .slot alone,
+   which is what made a card cream inside a coloured box.
+
+   Carrying the series in the stock is what lets the edge go back to being an edge. It
+   was a .4cqw painted rim before — thick enough to read as the cut edge of coloured
+   card, which it did, but on a face you look at for minutes it read as a frame drawn
+   round the page, and a frame is the one thing on a card that is always in your eye
+   and never what you are reading. The rim is a 1px hairline again, the same hairline
+   the box's own front has. The piles still come out striped in the series' colour,
+   because they are built from real offset layers and the layers are this stock. */
 [data-cat]{
-  --rim:color-mix(in srgb,var(--spot) 70%,var(--edge-0));
-  --edge:var(--rim);
-  --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
-  --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
-  --ghost:color-mix(in srgb,var(--spot) 36%,var(--ghost-0));
-}
-/* A box is the coloured object; a card is not. The box is the packaging, seen once,
-   from across a grid of sixteen, and it can afford to be printed on coloured stock.
-   The card is read for minutes at a time, and a wash across the whole of it turned
-   the paper into a surface with a colour rather than paper. So the card keeps the
-   cream it always had, and the series shows on its edge — which is where a deck shows
-   its colour anyway. A stack of cards presents its edges and nothing else, and the
-   piles here are built from real offset layers, so the draw pile and the discard both
-   come out striped in the series' colour without anything being drawn for them. */
-[data-cat] .slot{
   --stock:color-mix(in srgb,var(--wash) 82%,var(--paper));
   --stock-2:color-mix(in srgb,var(--wash) 90%,var(--paper-2));
+  --edge:color-mix(in srgb,var(--spot) 70%,var(--edge-0));
+  --rule:color-mix(in srgb,var(--spot) 52%,var(--rule-0));
+  --rule-soft:color-mix(in srgb,var(--spot) 46%,var(--rule-soft-0));
+  /* the ground the head band is printed on: the wash pulled a step further towards the
+     ink, so the band is the same colour the card is, printed heavier */
+  --band:color-mix(in srgb,var(--spot) 13%,var(--wash));
 }
-/* Thick enough to read as the painted edge of card stock rather than as a keyline, in
-   cqw like everything else so it is the same drawing at any size. It eats into the
-   face's content box and so shrinks every cqw inside it by about 0.85% — the whole
-   card, uniformly, which is the rim being the edge of the stock rather than a frame
-   drawn on top of it. */
-[data-cat] .face{border-width:.4cqw}
-[data-cat] .layer{border-width:1.5px}
 [data-cat="hiragana"]{--spot:#1B4F8A; --wash:#CCDDEB}
 [data-cat="katakana"]{--spot:#2E7F66; --wash:#CDE6DA}
 [data-cat="kanji"]   {--spot:#B07A16; --wash:#F3E1B6}
@@ -271,6 +273,31 @@ body{
   font-family:var(--jp); text-align:left; overflow:hidden;
 }
 .back{transform:rotateY(180deg)}
+
+/* ---- the head band ----
+   The box's own 和柄 printed in a band across the top of the card, on both faces, so a
+   card carries the ground its box does and not only the colour. The stock says which of
+   the three series this is; the band says which volume of it, because the tile steps
+   through the volumes exactly as the box's does — the 拗音 card is printed with the
+   coarser wave the 拗音 box is.
+
+   It is one strip at the head rather than a field over the whole card, and that is the
+   whole of why it can be there at all: a ground behind the type is a ground you read
+   through, and 青海波 behind 天気予報 is a texture in the way. At the head there is
+   nothing to be in the way of — every card, front and back, leaves its top clear, so the
+   band lands on the one part of the stock the printing had already left empty.
+
+   Full bleed, so the face's own border-radius crops it; the hairline underneath is the
+   rule at the head of a printed page, which is also what stops the band reading as a
+   title bar. --ps is the tile, set on the body by deal() the way the box sets its own,
+   in the card's cqw rather than the box's — and kept under this height there, because
+   a band is one course of the pattern and a tile taller than it is a strip of cropped
+   halves rather than 鱗. */
+.band{
+  position:absolute; left:0; right:0; top:0; height:3.2cqw; z-index:2;
+  pointer-events:none; background-color:var(--band);
+  border-bottom:.14cqw solid var(--rule-soft);
+}
 .turn{
   position:absolute; right:3.6cqw; bottom:3cqw;
   font-family:var(--jp); font-size:2.6cqw; color:var(--ink-3);
@@ -400,8 +427,10 @@ body{
    masking a glyph by them only stays accurate while it's too thin to read. Round caps
    and an even weight match Klee One's low-contrast pen character. */
 .cell svg{stroke-linecap:round; stroke-linejoin:round; fill:none}
-/* the guide must stay lighter than the answer: at equal weight it competes with the
-   stroke being taught and fringes out around it */
+/* The guide must stay lighter than the answer: at equal weight it competes with the
+   stroke being taught and fringes out around it. Grey in every series, and the same
+   grey — a guide is the one thing on the card you draw over rather than read, and a
+   tinted one read as a second ink laid over the stroke instead of under it. */
 /* --s is the scale a kana card's stroke was placed at; dividing it out keeps one pen
    width across a composed glyph, where the small kana is drawn at .42 of the big one. */
 .cell .gh path{stroke:var(--ghost); stroke-width:calc(3 / var(--s,1))}
@@ -579,7 +608,12 @@ body{
    pasted over it. The series line stays outside the label, up on the flap, so the
    pattern reads as the box rather than as a border drawn round a card. */
 .bx-pat{position:absolute; inset:0; z-index:0}
-/* Each ground states its own ink strength rather than the three sharing one, because
+/* The ground itself is .wagara, which the card's head band wears too: one pattern per
+   series, printed on both the packaging and what comes out of it. The element it is on
+   says how much of itself to cover and at what tile — .bx-pat the whole lid at the box's
+   --ps, .band a strip at the card's — and the three rules below say only what the
+   pattern is.
+   Each ground states its own ink strength rather than the three sharing one, because
    they do not cover the box equally: 青海波 is a field of thin arcs, 鱗 is solid
    triangles that fill half of it, and 格子 is a grid of single pixels. At one alpha the
    katakana boxes printed twice as heavy as the kanji ones, which read as the series
@@ -587,7 +621,7 @@ body{
    was the only thing true. What is matched here is how dark the box looks, not what
    the ink is set to. */
 /* 青海波 - two arc layers offset by half a tile, which is how the pattern is laid */
-[data-cat="hiragana"] .bx-pat{
+[data-cat="hiragana"] .wagara{
   --pat:color-mix(in srgb,var(--spot) 38%,transparent);
   --arc:repeating-radial-gradient(circle at 50% 100%,
     transparent 0 calc(var(--ps) * .17), var(--pat) calc(var(--ps) * .17) calc(var(--ps) * .205),
@@ -597,7 +631,7 @@ body{
   background-position:0 0, calc(var(--ps) / 2) calc(var(--ps) / 4);
 }
 /* 鱗 */
-[data-cat="katakana"] .bx-pat{
+[data-cat="katakana"] .wagara{
   --pat:color-mix(in srgb,var(--spot) 19%,transparent);
   background-image:
     linear-gradient(135deg,var(--pat) 25%,transparent 25%),
@@ -605,7 +639,7 @@ body{
   background-size:var(--ps) var(--ps);
 }
 /* 格子 - which on the kanji boxes reads as 方眼紙, the paper the practice is done on */
-[data-cat="kanji"] .bx-pat{
+[data-cat="kanji"] .wagara{
   --pat:color-mix(in srgb,var(--spot) 36%,transparent);
   background-image:
     repeating-linear-gradient(to right,var(--pat) 0 1px,transparent 1px var(--ps)),
@@ -733,11 +767,11 @@ body{
    dozen kana whose behaviour neither of those explains — a note, in the space a kanji
    card's back leaves empty. Then the facts, then the same six words with their romaji. */
 .kn-c{
-  position:absolute; left:6.5cqw; top:2.6cqw;
+  position:absolute; left:6.5cqw; top:3.4cqw;
   font-family:var(--jp); font-size:11cqw; font-weight:var(--jp-bold); line-height:1;
   -webkit-text-stroke:calc(var(--glyph-edge) * .4) currentColor;
 }
-.kn-c.two{font-size:8cqw; top:4.4cqw}
+.kn-c.two{font-size:8cqw; top:5cqw}
 .kn-rom{
   position:absolute; left:22.5cqw; top:3.9cqw;
   font-family:var(--latin); font-weight:300; font-size:6.8cqw; line-height:1;
