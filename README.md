@@ -121,6 +121,65 @@ nothing when pressed — there is no way back from the first card of a deal, and
 says so by not offering itself. The same fact drives the third line of the hint, which
 only appears once there is something behind you to go back to.
 
+**The pile runs out, and the discard becomes the deck.** Everything you have finished with
+is turned over and put back, which is what a person does with a discard: pick it up, turn
+it over, shuffle it, set it down. So it is animated as those four things in that order — a
+gather, a riffle, a second riffle, a square-up — about a second and a half in all, which a
+deck earns once a lap.
+
+The card in your hand stays in your hand throughout. You shuffle the discard around it,
+which is why `current` is the one index a reshuffle never touches, and why an out pile
+takes two clicks rather than one: the first shuffles, the second deals. The hint line has
+said so since before there was anything to watch.
+
+Six cards stand in for the whole pile, as in the deal, and each carries its share of the
+count across — the discard gives its share up as the card leaves, the pile takes it as the
+card lands, so for a moment the two tags do not add up to the deck. That difference is the
+cards in the air, which is where they are.
+
+Each one turns over on the way, because the discard lies readings-up and the draw pile
+lies front-up: a card crossing between them is exactly the turn that discarding it made,
+run backwards. It is the rule the undo already runs on, applied to a whole pile one card
+at a time. The turn is finished by the time the card is a third of the way across, so what
+the rest of the flight shows is the face the pile is about to be holding.
+
+**A gather cannot be honest at both ends**, and that decides the shape of the rest of it.
+What leaves the discard is what is lying on it, top card first. What the pile is left
+holding is whatever the shuffle decides, and those are not the same cards. So the pile
+shows the card that really landed on it right up to the moment the riffle starts, the
+riffle shows no top card at all — a pile in motion has none to show — and the face that
+comes back when it stops is the one the shuffle put there. Nothing untrue is on screen at
+rest.
+
+**The riffle is drawn with the pile's own layers.** A pile here is already one layer per
+card, so a shuffle is those layers splitting into two packets, leaning apart and falling
+back. The packets falling *alternately* — deepest card of one, then deepest of the other —
+is what makes it a riffle rather than two halves rejoining, which is a cut. Two passes,
+mirrored, because nobody shuffles a deck once.
+
+What five cream rectangles 1.5px apart do not have is texture, so the separation is the
+only signal there is and it has to be taken: the packets part by a fifth of the pile's
+width, far enough to read as two objects and not so far that the pile stops being one.
+The layers keep their own stacking offsets underneath — `composite:"add"` lays the riffle
+over the 1.5px step each one already carries, and a browser that does not understand it
+riffles a flat pile, which is the whole of what that costs.
+
+A reshuffle also outlives the click that started it by long enough for the chooser to have
+been opened and a different deck dealt underneath it, which nothing else here does. `hand`
+counts deals, and a gather that lands after the table has changed hands lands on nothing
+rather than putting the old deck back.
+
+**The empty draw pile was painted black, and had been for as long as the pile was the
+thing you click.** There was a Draw button once, styled `.draw`; it went when the pile
+took its job, and its rules stayed. The draw pile is `class="pile draw"` — same
+specificity as `.pile`, further down the file — so `background:var(--ink)`, a 2px radius,
+30px of padding and a hover transform were all landing on it, and the black showed through
+the moment the layers went. Which is precisely the pile you are looking at when the deck
+runs out, and the one a gather flies cards onto. Two piles that are one object in two
+states now compute as one, and the ids on the count tags went the same way: `renderPile`
+finds the count inside the pile it is drawing, because the count is part of what a pile
+shows and not a thing the caller remembers to update.
+
 **Flight paths are measured at runtime**, centre-to-centre between the card's box and the
 pile's box, so they stay correct at any viewport and would survive moving the piles. A
 flyer is always built at the size of where it *lands* and animated back from where it came

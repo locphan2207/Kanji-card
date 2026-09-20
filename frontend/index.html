@@ -81,12 +81,14 @@
             aria-label="Discard pile. Activate to take the last card back.">
       <div class="stack"></div>
       <span class="mark">済</span>
-      <span class="tag">済み <b id="usedN">0</b></span>
+      <!-- the count is part of rendering a pile, so renderPile finds it inside the pile
+           rather than by an id of its own -->
+      <span class="tag">済み <b>0</b></span>
     </button>
     <button class="pile draw" id="drawPile" aria-label="Draw pile. Activate to draw a card.">
       <div class="stack"></div>
       <span class="mark">山</span>
-      <span class="tag">山札 <b id="drawN">0</b></span>
+      <span class="tag">山札 <b>0</b></span>
     </button>
   </div>
 </div>
