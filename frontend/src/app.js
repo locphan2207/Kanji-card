@@ -198,7 +198,8 @@ function renderPiles() {
   renderPile(usedPile, used.length, used.length ? used[used.length - 1] : null, "back");
   const empty = deck.length === 0;
   drawPile.setAttribute("aria-label", empty
-    ? "Draw pile is empty. Activate to shuffle the discards back in."
+    ? "Draw pile is empty. Activate to finish with this card, shuffle the discards back"
+      + " in and deal the next one."
     : `Draw pile, ${deck.length} cards. Activate to draw.`);
   // Nothing has been finished with yet, so there is nothing to take back: the discard is
   // a button that is simply not offered rather than one that does nothing when pressed.
@@ -208,7 +209,7 @@ function renderPiles() {
     : "Discard pile is empty.");
   // the third line only appears once there is something behind you to go back to
   $("hint").innerHTML = (empty
-    ? "the pile is out — click it to shuffle the discards back in"
+    ? "the pile is out — click it to shuffle the discards back in and carry on"
     : "click the pile or press <kbd>space</kbd> · <kbd>f</kbd> turns the card over") +
     (used.length ? " · <kbd>z</kbd> takes the last card back" : "");
 }
@@ -355,11 +356,20 @@ function revertCard() {
 
 /* ============ the pile runs out ============
    Everything you have finished with is turned over and becomes the pile you draw from
-   again, which is what a person does with a discard: pick it up, turn it over, shuffle
-   it, set it down. So it is animated as those four things in that order — a gather that
-   turns each card over on its way across, two riffles, and a square-up. The card in your
-   hand stays there throughout — you shuffle the discard around it — which is why
-   `current` is the one index a reshuffle never touches.
+   again, which is what a person does with a discard: put down the card in your hand,
+   pick the pile up, turn it over, shuffle it, set it down, and deal. So it is animated
+   as those things in that order, and one press of the pile is the whole of it.
+
+   The card in your hand goes first. It is the last card of the lap and you have finished
+   with it, so it belongs on the discard before the discard can become the deck — a pile
+   gathered around the card still in your hand would be everything you had seen except
+   the one you had just seen. It travels by the same flight a draw sends a finished card
+   on, to the same pile, landing readings-up.
+
+   That empties the table, so the last thing the reshuffle does is deal off the pile it
+   has just made. A full deck and nothing to study is not a state this table has, and it
+   is the reason the opening deal sends a card to the stage while the pile is still
+   landing rather than after.
 
    Six cards stand in for the whole pile, as in the deal, and each carries its share of
    the count across: the discard gives its share up as the card leaves and the draw pile
@@ -368,10 +378,12 @@ function revertCard() {
 
    A gather cannot be honest at both ends. What leaves the discard is what is lying on
    it, top card first; what the pile is left holding is whatever the shuffle decides. So
-   the pile shows the card that really landed on it right up to the riffle, the riffle
-   shows no top card at all — a pile in motion has none to show — and the face that comes
-   back is the one the shuffle put there. Nothing untrue is on screen at rest. */
-const GATHER_N = 6, GATHER_GAP = 62;
+   the pile shows the card that really landed on it right up to the riffle, and from
+   there it shows no top card at all — a pile being shuffled has none to show, and a pile
+   being dealt off has the dealt card covering it. The face it is left with is the one
+   the shuffle put there, uncovered by the card leaving for the stage. Nothing untrue is
+   on screen at rest. */
+const GATHER_N = 6, GATHER_GAP = 48;
 
 /* One card off the discard and onto the draw pile. Built on the pile it lands on and
    animated back from the pile it left, like every other flight here.
@@ -389,15 +401,41 @@ function gatherFly(dest, f, idx, lean) {
     { transform: P + `translate(${f.dx * .52}px,${f.dy * .52 - 34}px)`
       + ` scale(${(f.s + 1) / 2}) rotateY(14deg) rotate(${lean * .45}deg)`, offset: .46 },
     { transform: P + "translate(0,0) scale(1) rotateY(0deg) rotate(0deg)" },
-  ], { duration: 400, easing: "cubic-bezier(.33,.66,.3,1)", fill: "forwards" })
+  ], { duration: 360, easing: "cubic-bezier(.33,.66,.3,1)", fill: "forwards" })
     .finished.catch(() => {}).finally(() => g.remove());
+}
+
+/* The card in your hand, put down before anything is picked up. This is drawCard's first
+   half on its own — the same flight, the same pile, landing readings-up — and everything
+   it touches it touches now, synchronously, so that what is left to run is a flight and
+   nothing else. The index comes back rather than being pushed onto the discard here,
+   because by the time it lands the discard may belong to a different deck. */
+function finishLast() {
+  const outgoing = current;
+  if (outgoing < 0) return Promise.resolve(-1);
+  const box = card.getBoundingClientRect(), wasFlipped = flipped;
+  const g = makeFlyer(box, outgoing);
+  const f = flight(box, usedPile.getBoundingClientRect());
+  current = -1;
+  card.classList.add("hidden");
+  setFlipped(false);              // the turn happens under the flyer, where it is not seen
+  return g.animate([
+    { transform: P + `translate(0,0) scale(1) rotateY(${wasFlipped ? 180 : 0}deg)` },
+    { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s})`
+      + " rotateY(180deg) rotate(5deg)" },
+  ], { duration: 400, easing: "cubic-bezier(.4,0,.25,1)", fill: "forwards" })
+    .finished.catch(() => {}).finally(() => g.remove()).then(() => outgoing);
 }
 
 /* The discard crossing the table. The flyers are made at the moment each one leaves
    rather than up front, so the one on its way is always the one painted over the rest —
    a card waiting its turn on top of the discard would be showing a face that is two or
-   three cards down. */
-function gather(pending) {
+   three cards down.
+
+   Each step asks whether it is still drawing to the table it started on: these paint
+   `pending`'s indices into the piles, and after a different deck has been dealt those
+   indices mean nothing, or nothing that exists. */
+function gather(pending, mine) {
   const N = pending.length, n = Math.min(GATHER_N, N);
   const dest = drawPile.getBoundingClientRect();
   const f = flight(dest, usedPile.getBoundingClientRect());
@@ -405,10 +443,11 @@ function gather(pending) {
 
   return Promise.all(Array.from({ length: n }, (_, i) => new Promise(done => {
     setTimeout(() => {
+      if (mine !== hand) return done();
       const idx = pending[N - 1 - i], left = N - share(i + 1);
       renderPile(usedPile, left, left ? pending[left - 1] : null, "back");
       gatherFly(dest, f, idx, -6 + i * 2.2).then(() => {
-        renderPile(drawPile, share(i + 1), idx, "front");
+        if (mine === hand) renderPile(drawPile, share(i + 1), idx, "front");
         done();
       });
     }, i * GATHER_GAP);
@@ -457,42 +496,83 @@ function squareUp() {
   return drawPile.querySelector(".stack").animate([
     { transform: "translateY(-5px)" }, { transform: "translateY(1.5px)" },
     { transform: "none" },
-  ], { duration: 220, easing: "cubic-bezier(.3,.8,.35,1)" }).finished.catch(() => {});
+  ], { duration: 200, easing: "cubic-bezier(.3,.8,.35,1)" }).finished.catch(() => {});
+}
+
+/* and dealt off, because the table cannot be left with a full deck on it and nothing to
+   study. This is drawCard's second half on its own: the top card slides across to the
+   stage, front-up, since that is how it is lying.
+
+   It is also what uncovers the pile. The face has been hidden since the riffle started,
+   and the flyer sets off from exactly the box the pile occupies, so the card underneath
+   is revealed by the card on top of it leaving — which is the one moment in a reshuffle
+   where showing a new top card needs nothing to cover the change. */
+function dealOne() {
+  const incoming = deck.shift();
+  current = incoming;
+  setFlipped(false);
+  paint(card, CARDS[current]);
+  drawPile.classList.remove("shuffling");
+  renderPiles();
+
+  const box = card.getBoundingClientRect();
+  const g = makeFlyer(box, incoming);
+  const f = flight(box, drawPile.getBoundingClientRect());
+  return g.animate([
+    { transform: P + `translate(${f.dx}px,${f.dy}px) scale(${f.s}) rotate(-3deg)` },
+    { transform: P + "translate(0,0) scale(1) rotate(0deg)" },
+  ], { duration: 460, easing: "cubic-bezier(.2,.86,.3,1)", fill: "forwards" })
+    .finished.catch(() => {}).finally(() => {
+      g.remove();
+      card.classList.remove("hidden");
+    });
 }
 
 async function reshuffle() {
   if (busy || !used.length) return;
   busy = true;
 
-  const pending = used;             // the pile being picked up, bottom card first
-  used = [];
   if (reduced) {
-    deck = shuffle(pending); renderPiles(); busy = false;
+    if (current >= 0) used.push(current);
+    deck = shuffle(used); used = [];
+    current = deck.shift();
+    setFlipped(false); paint(card, CARDS[current]); renderPiles();
+    busy = false;
     return;
   }
 
-  // A reshuffle takes a second and a half and the chooser is one click away for all of
-  // it, so a gather that finishes after the table has been given a different deck has to
-  // land on nothing rather than put the old deck back.
+  // A reshuffle runs for a couple of seconds and the chooser is one click away for all
+  // of it, so every step asks whether the table it started on is still there: a gather
+  // that lands after a different deck has been dealt has to land on nothing rather than
+  // put the old deck back.
   const mine = hand;
   try {
-    await gather(pending);
+    const last = await finishLast();
     if (mine !== hand) return;
-    drawPile.classList.add("shuffling");
-    await Promise.all([riffle(1, 330, 0), riffle(-1, 290, 330)]);
+    if (last >= 0) { used.push(last); renderPiles(); }
+    await settle(50);               // the pile is whole for a beat before it is picked up
+
+    const pending = used;           // the pile being picked up, bottom card first
+    used = [];
+    await gather(pending, mine);
     if (mine !== hand) return;
 
-    deck = shuffle(pending);
-    renderPiles();                  // the pile is holding what the shuffle decided
-    drawPile.classList.remove("shuffling");
-    // faded in rather than switched on: the face is brand new, so a CSS transition off
-    // the class has nothing to start from and would simply appear
-    const top = drawPile.querySelector(".mini");
-    if (top) top.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 190, easing: "ease-out" });
-    await squareUp();
+    drawPile.classList.add("shuffling");
+    await Promise.all([riffle(1, 280, 0), riffle(-1, 240, 280)]);
+    if (mine !== hand) return;
+
+    deck = shuffle(pending);        // the pile is holding what the shuffle decided
+    renderPiles();
+    squareUp();                     // the deal sets off into the tail of the square-up
+    await settle(90);
+    if (mine !== hand) return;
+    await dealOne();
   } finally {
-    drawPile.classList.remove("shuffling");
-    if (mine === hand) busy = false;   // a new deal has already set its own
+    if (mine === hand) {            // a new deal has already set its own
+      drawPile.classList.remove("shuffling");
+      card.classList.remove("hidden");
+      busy = false;
+    }
   }
 }
 

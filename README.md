@@ -122,15 +122,27 @@ says so by not offering itself. The same fact drives the third line of the hint,
 only appears once there is something behind you to go back to.
 
 **The pile runs out, and the discard becomes the deck.** Everything you have finished with
-is turned over and put back, which is what a person does with a discard: pick it up, turn
-it over, shuffle it, set it down. So it is animated as those four things in that order — a
-gather, a riffle, a second riffle, a square-up — about a second and a half in all, which a
-deck earns once a lap.
+is turned over and put back, which is what a person does with a discard: put down the card
+in your hand, pick the pile up, turn it over, shuffle it, set it down, and deal. So it is
+animated as those things in that order — a discard, a gather, two riffles, a square-up and
+a deal — a little over two seconds in all, which a deck earns once a lap, and one press of
+the pile is the whole of it.
 
-The card in your hand stays in your hand throughout. You shuffle the discard around it,
-which is why `current` is the one index a reshuffle never touches, and why an out pile
-takes two clicks rather than one: the first shuffles, the second deals. The hint line has
-said so since before there was anything to watch.
+The card in your hand goes first. It is the last card of the lap and you have finished
+with it, so it belongs on the discard before the discard can become the deck: a pile
+gathered around the card still in your hand would be everything you had seen except the
+one you had just seen. It travels by the same flight a draw sends a finished card on, to
+the same pile, landing readings-up.
+
+That empties the table, which is why the reshuffle ends by dealing off the pile it has
+just made. A full deck and nothing to study is not a state this table has — it is the same
+reason the opening deal sends a card to the stage while the pile is still landing rather
+than after it.
+
+The card you just finished with is in that shuffle like any other, so it can come back on
+top: one lap in twelve on 特殊, one in seventy-nine on N5, one in 1,144 on N1. That is
+what a shuffle is, and moving it would be the animation telling you a shuffle happened
+while quietly arranging that it hadn't.
 
 Six cards stand in for the whole pile, as in the deal, and each carries its share of the
 count across — the discard gives its share up as the card leaves, the pile takes it as the
@@ -146,10 +158,13 @@ the rest of the flight shows is the face the pile is about to be holding.
 **A gather cannot be honest at both ends**, and that decides the shape of the rest of it.
 What leaves the discard is what is lying on it, top card first. What the pile is left
 holding is whatever the shuffle decides, and those are not the same cards. So the pile
-shows the card that really landed on it right up to the moment the riffle starts, the
-riffle shows no top card at all — a pile in motion has none to show — and the face that
-comes back when it stops is the one the shuffle put there. Nothing untrue is on screen at
-rest.
+shows the card that really landed on it right up to the moment the riffle starts, and from
+there it shows no top card at all — a pile being shuffled has none to show, and a pile
+being dealt off has the dealt card covering it. The face it is left with is the one the
+shuffle put there, uncovered by the card leaving for the stage rather than faded in over
+it: the deal is the one moment in a reshuffle where changing the top card needs nothing to
+hide the change, because the card on top of it is already leaving. Nothing untrue is on
+screen at rest.
 
 **The riffle is drawn with the pile's own layers.** A pile here is already one layer per
 card, so a shuffle is those layers splitting into two packets, leaning apart and falling
