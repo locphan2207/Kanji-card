@@ -732,7 +732,7 @@ function dealFromBox(cards, meta, from) {
    block of type sits on a pasted label. The ground says which of the three series a
    box belongs to from across the room; the label says everything else.
 
-   Nothing on the box is invented. 第80–247番 is the run of card numbers the deck
+   Nothing on the box is invented. 第90–267番 is the run of card numbers the deck
    actually holds, and because the three groups each tile their numbering with no
    gaps, the boxes in a row read as volumes of one set — か and カ share a card
    number, so ひらがな清音 and カタカナ清音 print the same range, which is the point. */

@@ -336,10 +336,11 @@ body{
    The header sits 1.4cqw lower than it did, which is the head band being the top of the
    card now rather than the stock's own edge — at 5cqw, the same height the kana back
    starts its own character at, because both backs are the same card. All of that came
-   from the air above the rule, none from the list below it: 傲 (#2042) is the tightest
-   card in the jōyō set and leaves .bk-groups 0.83cqw of slack, so the rule and
-   everything under it stay where they were. What is left above the rule is about
-   1.2cqw of clear stock against 1.8cqw under the band, which is the band being a solid
+   from the air above the rule, none from the list below it: 弄 (#2382) is the tightest
+   card in the set and leaves .bk-groups 3cqw of slack — and only because build_cards.py
+   caps a card at two wrapped rows; before that cap the fullest card left 0.83cqw. The
+   rule and everything under it stay where they were. What is left above the rule is
+   about 1.2cqw of clear stock against 1.8cqw under the band, which is the band being a solid
    and the rule a hairline: the heavier edge takes the wider gap. */
 .back .bk-k{
   position:absolute; left:6.5cqw; top:5cqw; font-family:var(--jp);
@@ -614,7 +615,7 @@ body{
    The two walls are 2D skews, not 3D rotations, and that is the whole reason this is
    usable. Rotating the front in 3D was tried first and it is the obvious way to do it —
    but a 3D-transformed element is rasterised once and resampled, and at the size a box
-   is printed 漢字ドリル and 第993–2136番 came out as mush. Skewing only the walls leaves the front untouched,
+   is printed 漢字ドリル and 第1133–2524番 came out as mush. Skewing only the walls leaves the front untouched,
    so every glyph on it is drawn at the device's own resolution. It also keeps what was
    true before: no perspective, no 3D context, no compositing layer per box, and a hover
    that is still one translate. */

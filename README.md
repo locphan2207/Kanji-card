@@ -10,8 +10,10 @@ kana card is the same stock asking a much smaller question, so its front is the 
 and the stroke order and nothing else.
 
 Two kinds of card, because they ask different questions. A **kanji card** asks which
-reading each compound uses; all 2,136 jōyō kanji are here, dealt as five decks by JLPT
-level. A **kana card** asks what one character sounds like; the whole syllabary is here —
+reading each compound uses; 2,524 of them are here, dealt as five decks by JLPT level —
+every one of the 2,136 jōyō kanji, and 388 more that a JLPT source places at a level
+though the jōyō list does not cover them — 誰 and 箸 and 醤 and 嘘 among them. A **kana
+card** asks what one character sounds like; the whole syllabary is here —
 263 slots across both scripts, dealt as nine decks by class of form — not just the 46 you
 start with but the voiced kana, the 拗音 combinations, the sokuon and the long mark, the
 foreign sounds katakana borrowed, and the two kana the 1946 reform retired — plus a 全部
@@ -45,7 +47,7 @@ runs when the card content changes, not when the page loads.
 ## Regenerating the data
 
 ```
-python3 tools/build_cards.py          # ~10s once the sources are cached
+python3 tools/build_cards.py          # ~20s once the sources are cached
 ```
 
 Writes `frontend/data/decks.js` and `frontend/data/decks/*.js` — both halves, in one
@@ -59,7 +61,7 @@ paths from KanjiVG, and the cross-references from KanjiVG's component decomposit
 
 The kana are the exception, and `kana_tables.py` is where they are written out. That is
 not laziness in reverse — it is the same argument the other way round. Nobody can hand-
-write 2,136 kanji, so those have to be derived; the kana are a closed set of 263 slots
+write 2,524 kanji, so those have to be derived; the kana are a closed set of 263 slots
 that has not changed since 1946, and the things a kana card actually wants are in no
 machine-readable source. Which kanji あ was cursived down from, that シ and ツ are the
 pair everyone mixes up, that を is only ever the object particle — none of that is in
@@ -70,8 +72,26 @@ example words still come from the same pipeline as the kanji cards'.
 common or not and stops there, so the ranking leans on the JLPT vocabulary lists first,
 then prefers words whose kanji the learner has already met, and applies quotas so one
 shape of word cannot take the whole card — without them 日 fills with 一日 二日 三日 and
-never gets round to 日本. 22 rare kanji (朕, 劾, 摯 …) genuinely have fewer than six
-compounds and get what exists.
+never gets round to 日本, and a cap of two wrapped rows so a card cannot print past its
+own bottom edge. 134 rare kanji (朕, 劾, 摯 …) genuinely have fewer than six compounds and
+get what exists.
+
+**Which deck a kanji goes in** is the other. No single list covers the ground. The N5–N1
+kanji list everybody works from reconstructs the exam as it stood before the 2010 rewrite,
+so it says nothing about 172 jōyō kanji — 誰 and 箸 and 鍵 among them, added to the jōyō
+set that same year — and nothing about the kanji outside that set a learner still meets on
+a menu. So four sources are asked in turn and the first that knows a kanji places it: the
+N5–N1 kanji list, then the pre-2010 official levels read onto the new scale, then the JLPT
+vocabulary lists (the easiest level of a word written with the kanji), then WaniKani's own
+teaching order, read off against the levels it shares. School grade is what is left for
+the 62 jōyō kanji none of them place, and it used to place all 172.
+
+The order is the whole design, and the vocabulary lists are third rather than first on
+purpose. A kanji list says where a kanji is *tested*; a word list only says where it is
+*met*, and the two sit a level or two apart — 綺麗 is an N5 word, 麗 is not an N5 kanji.
+Let the vocabulary outvote the lists and 1,280 kanji move down a deck; let it speak only
+where no list does and it puts 誰 and 箸 and 鍵 in N5, where a learner meets them, instead
+of in N1, where school grade had been putting them.
 
 ## Design notes worth keeping
 
@@ -264,7 +284,7 @@ different ways on two screens.
 front in 3D was tried first and it is the obvious way to build a box: `preserve-3d` on the
 button, `rotateX`/`rotateY`, a wall hinged on each edge. It looks right and it destroys the
 type. A 3D-transformed element is rasterised once and then resampled, and at the size a
-box is printed that turns 漢字ドリル and 第993–2136番 into mush — the deck's name, which is the one thing the
+box is printed that turns 漢字ドリル and 第1133–2524番 into mush — the deck's name, which is the one thing the
 chooser exists to show. Skewing only the two turned-away walls leaves the front
 untransformed, so every glyph on it is drawn at the device's own resolution. It also keeps
 what was true of the flat version: no perspective, no 3D context, no compositing layer per
@@ -287,11 +307,11 @@ right detail on a real box, but it took a bite out of every label.
 series a box belongs to from across the room — 青海波 for ひらがな, 鱗 for カタカナ, 格子 for
 漢字, which on the kanji boxes reads as the 方眼紙 the practice is done on — and its scale
 steps through the volumes, so 拗音 is not the same object as 清音. Over it sits the drill
-workbook's block of type: the deck name, the romaji, and along the foot `第80–247番` and
-`全168枚`. The range is real. Every deck's card numbers are contiguous, because a card
-number is the slot in the syllabary or the jōyō index and the decks partition those in
+workbook's block of type: the deck name, the romaji, and along the foot `第90–267番` and
+`全178枚`. The range is real. Every deck's card numbers are contiguous, because a card
+number is the slot in the syllabary or the kanji index and the decks partition those in
 order, so `build_cards.py` writes each deck's `lo` and `hi` into the manifest and a box can
-say what it holds without the deck being downloaded. The five kanji boxes tile 1–2136 with
+say what it holds without the deck being downloaded. The five kanji boxes tile 1–2524 with
 no gaps; か and カ share a card number, so ひらがな清音 and カタカナ清音 print the same range,
 which is the two scripts being one system seen twice, printed on the packaging. A merged
 deck has no cards of its own to measure, so it takes the span of its parts — `第1–119番`
@@ -402,12 +422,14 @@ The kana back had room below: its header, its rule and its body all drop 1.6cqw
 together, so the face keeps its proportions and only its head margin changes. That costs
 `.kn-body` 1.6cqw of the 3.95cqw the fullest card in either syllabary leaves it.
 
-The kanji back had none. 傲 (#2042) is the tightest card in the jōyō set and leaves
-`.bk-groups` 0.83cqw of slack, so the rule and the list under it cannot move at all
-without costing a compound its row — which means the 1.4cqw the header moves has to come
-out of the air above the rule. It ends up with about 1.8cqw of clear stock under the
-band and 1.2cqw above the rule, and that asymmetry is right rather than a compromise:
-the band is a solid and the rule is a hairline, so the heavier edge takes the wider gap.
+The kanji back had none. 弄 (#2382) is the tightest card in the set and leaves
+`.bk-groups` 3cqw of slack — and only because `pick_words` caps a card at two wrapped
+rows; before that cap the fullest card left 0.83cqw. So the rule and the list under it
+cannot move without costing a compound its row — which means the 1.4cqw the header
+moves has to come out of the air above the rule. It ends up with about 1.8cqw of clear
+stock under the band and 1.2cqw above the rule, and that asymmetry is right rather than
+a compromise: the band is a solid and the rule is a hairline, so the heavier edge takes
+the wider gap.
 The kana front's glyph box moved for a different reason — it began 0.2cqw *under* the
 band, which was invisible, because the character is centred in a box far taller than it
 is, but a box the band overlaps is one bad font away from being clipped by it.
@@ -670,8 +692,8 @@ devices. Card content would stay in these files either way.
 
 Card data is derived from open datasets and inherits their licences:
 
-- **KANJIDIC2** — readings, meanings, stroke counts, grades, frequencies, radicals.
-  © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0.
+- **KANJIDIC2** — readings, meanings, stroke counts, grades, frequencies, radicals, and
+  the pre-2010 JLPT levels. © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0.
 - **JMdict** — the example words, their readings and glosses.
   © [EDRDG](https://www.edrdg.org/), CC BY-SA 4.0.
   Both obtained via [jmdict-simplified](https://github.com/scriptin/jmdict-simplified).
@@ -679,10 +701,12 @@ Card data is derived from open datasets and inherits their licences:
   draws every hiragana and katakana form including the voiced ones, the small ones, ー,
   and the two the 1946 reform retired. © Ulrich Apel, CC BY-SA 3.0.
   <https://kanjivg.tagaini.net>
-- **JLPT kanji levels** — via
+- **JLPT kanji levels and WaniKani levels** — the N5–N1 list is Jonathan Waller's,
+  the teaching order is WaniKani's, both via
   [davidluzgouveia/kanji-data](https://github.com/davidluzgouveia/kanji-data), CC BY 4.0.
-- **JLPT vocabulary lists** — used to rank example words on every card, and on the kana
-  cards also to decide which dictionary entry a kana spelling means, from
+- **JLPT vocabulary lists** — used to rank example words on every card, to place the
+  kanji no kanji list covers, and on the kana cards also to decide which dictionary
+  entry a kana spelling means, from
   [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks), MIT.
 - **Klee One** — typeface, SIL Open Font License 1.1.
 
@@ -692,16 +716,26 @@ The syllabary tables in `tools/kana_tables.py` — the gojūon grid, the 字源 
 The EDRDG and KanjiVG licences are share-alike, so `frontend/data/` and anything derived
 from it must carry the same terms.
 
-The JLPT has published no official kanji or vocabulary lists since 2010. The N5–N1
-grouping here is the usual community reconstruction, not an official list, and the 172
-jōyō kanji it does not cover are placed by school grade.
+The JLPT has published no official kanji or vocabulary lists since 2010, so the N5–N1
+grouping here is a community reconstruction, not an official list. Four sources are read
+in turn rather than one — see `kanji_levels` in `build_cards.py` — which places 2,462 of
+the 2,524 kanji on evidence and leaves 62 jōyō kanji to their school grade. They are not
+four independent opinions: the N5–N1 kanji list and the vocabulary lists are both
+Jonathan Waller's, and the pre-2010 levels are what every list of that era descends from.
+What they differ in is coverage, which is the thing that was missing.
+
+Which kanji is a level's own is therefore a judgement, and a defensible one either way.
+302 of the 388 added kanji land in N1, 242 of them because that is where both kanji lists
+put the jinmeiyō name characters — 彦, 昌, 靖. All 86 below N1 are the vocabulary lists'
+doing: 醤油 and 石鹸 and 茶碗 are N5 words whatever the jōyō list says about 醤 and 鹸 and
+碗.
 
 ## Not done yet
 
 - **No progress.** Which cards you have seen is not remembered; a reload deals a fresh
   shuffle. This is the part that most wants somewhere to write, and `localStorage` — which
   the two switches in the room already use — covers it long before a database does.
-- **N1 is one 555KB download.** Fine on a laptop, heavy on a phone. Stroke paths are
+- **N1 is one 673KB download.** Fine on a laptop, heavy on a phone. Stroke paths are
   about two thirds of it and are only needed for the practice strip, so splitting them
   into a second file the deck pulls after the text would cut first paint a lot.
 - **Stroke types are dropped.** KanjiVG tags each stroke ㇐/㇑/㇒; nothing reads it, so
