@@ -2,7 +2,7 @@
 """The kana themselves: every slot in the syllabary, hand-written.
 
 Unlike the kanji tables, which have to be derived from KANJIDIC and JMdict because
-nobody can write out 2,136 entries by hand, the kana are a closed set of 263 slots that
+nobody can write out 2,524 entries by hand, the kana are a closed set of 263 slots that
 has not changed since 1946. Writing them out is the honest way to get them right - the
 things a kana card wants (which row it sits in, which kanji it was cursived down from,
 which other kana it is mistaken for) are not in any machine-readable source.

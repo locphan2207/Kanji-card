@@ -3,9 +3,10 @@
 
     python3 tools/build_cards.py
 
-Every jouyou kanji becomes a card, grouped into the five JLPT levels, and every kana
-slot becomes a card, grouped by script and by how far past the plain syllabary it sits.
-One file per deck, so the app downloads only the deck you pick.
+Every jouyou kanji, and every other kanji a JLPT source places at a level, becomes a
+card, grouped into the five levels; every kana slot becomes a card, grouped by script and
+by how far past the plain syllabary it sits. One file per deck, so the app downloads only
+the deck you pick.
 
 The kana half lives in build_kana.py and kana_tables.py; this file owns the sources, the
 manifest, and the writing, so there is one place that knows what a deck file looks like.
@@ -17,13 +18,16 @@ Sources (all cached under tools/cache/, so reruns are offline)
     via the same releases
   KanjiVG (per-stroke paths, stroke types, radical form)     CC BY-SA 3.0
     github.com/KanjiVG/kanjivg releases
-  kanji-data (JLPT N5-N1 levels only)                        CC BY 4.0
+  kanji-data (JLPT N5-N1 levels, WaniKani levels)            CC BY 4.0
     github.com/davidluzgouveia/kanji-data
+  open-anki-jlpt-decks (the JLPT vocabulary lists)           MIT
+    github.com/jamsinclair/open-anki-jlpt-decks
 
 The JLPT has not published official kanji lists since 2010; the N5-N1 grouping is the
-usual community reconstruction, not an official list.
+usual community reconstruction, not an official list, and no single reconstruction covers
+every kanji a learner meets. Four sources are asked in turn instead - see kanji_levels.
 """
-import csv, json, os, re, sys, unicodedata, urllib.request, zipfile
+import csv, json, os, re, statistics, sys, unicodedata, urllib.request, zipfile
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -49,7 +53,11 @@ SOURCES = {
 
 JOUYOU_GRADES = (1, 2, 3, 4, 5, 6, 8)
 LEVELS = [5, 4, 3, 2, 1]                       # N5 first: the deck order learners meet
-# Untagged jouyou kanji inherit the commonest JLPT level of their school grade.
+# The pre-2010 levels on the new scale, from the JLPT's own note on the 2010 rewrite:
+# N5 is about old 4, N4 about old 3, N2 about old 2, N1 about old 1, and N3 is the level
+# that was added in between - which is why no old list ever places a kanji at N3.
+OLD_LEVEL = {4: 5, 3: 4, 2: 2, 1: 1}
+# Last resort, and only for jouyou kanji: the commonest JLPT level of their school grade.
 GRADE_LEVEL = {1: 5, 2: 4, 3: 3, 4: 3, 5: 2, 6: 1, 8: 1}
 
 # Radical numbers whose Kangxi form is not the shape used in Japanese.
@@ -57,7 +65,7 @@ JP_RADICAL = {63: "戸", 162: "辶", 174: "青"}
 
 # Word forms and senses that do not belong on a study card.
 BAD_FORM  = {"rK", "sK", "iK", "oK"}
-BAD_SENSE = {"arch", "obs", "rare", "derog", "vulg", "X", "sl"}
+BAD_SENSE = {"arch", "obs", "rare", "derog", "vulg", "X", "sl", "proverb", "quote"}
 NAME_SENSE = {"place", "surname", "given", "organization", "work", "product", "person"}
 # A study card wants kanji, not 9日 or CDプレーヤー.
 NOT_A_WORD = re.compile(r"[0-9\uff10-\uff19A-Za-z\uff21-\uff3a\uff41-\uff5a]")
@@ -121,6 +129,68 @@ def load_jlpt_readings():
                     out[reading] = (n, (row.get("expression") or "").strip(),
                                     (row.get("meaning") or "").strip())
     return out
+
+
+def is_kanji(ch):
+    return "\u4e00" <= ch <= "\u9fff"
+
+
+def kanji_levels(chars, jlpt_src, jlpt_vocab):
+    """Which of the five levels each kanji belongs to, asking every source that has an
+    opinion. Returns kanji -> (level, the source that placed it).
+
+    No one list is enough. The N5-N1 kanji list everybody works from (Jonathan Waller's,
+    via kanji-data) reconstructs the exam as it stood before the 2010 rewrite, so it is
+    silent on 172 jouyou kanji - 誰 and 箸 and 鍵 among them, added to the jouyou set that
+    same year - and silent on every kanji outside that set which a learner still meets on
+    a menu. Falling back to school grade, as this used to, puts 誰 in N1.
+
+    So four sources are asked in turn, and the first that knows a kanji places it:
+
+      1. the N5-N1 kanji list      2,211 kanji at the level the reconstruction tests them
+      2. the pre-2010 JLPT levels  4-1 read onto the new scale, from KANJIDIC2
+      3. the JLPT vocabulary       the easiest level of a word written with the kanji
+      4. WaniKani                  its own teaching order, 1-60, read off against (1)
+
+    The order is the whole design. A kanji list says where a kanji is *tested*; a word
+    list only says where it is *met*, and the two sit a level or two apart - 綺麗 is an N5
+    word, 麗 is not an N5 kanji. Let the vocabulary outvote the lists and 1,280 kanji move
+    down a deck; let it speak only where no list does and it places 誰 at N5, 箸 at N5 and
+    頃 at N4, which is where a learner actually meets them. WaniKani comes last because it
+    is not teaching to the exam at all, and it shows: where both speak it agrees with the
+    vocabulary on a third of the kanji and calls the rest N1.
+    """
+    levels = {}
+    for ch, e in jlpt_src.items():                           # 1. the N5-N1 kanji list
+        if e.get("jlpt_new"):
+            levels[ch] = (e["jlpt_new"], "list")
+    for ch, c in chars.items():                              # 2. the pre-2010 levels
+        old = c["misc"].get("jlptLevel")
+        if old and ch not in levels:
+            levels[ch] = (OLD_LEVEL[old], "old")
+
+    met = {}                                                 # 3. the vocabulary lists
+    for word, n in jlpt_vocab.items():        # the loader already kept the easiest level
+        for ch in word:
+            if is_kanji(ch) and n > met.get(ch, 0):
+                met[ch] = n
+    for ch, n in met.items():
+        levels.setdefault(ch, (n, "vocab"))
+
+    # 4. WaniKani teaches these kanji in its own order, 1-60, which is not the JLPT's.
+    # Reading one scale off the other needs no hand-written table: take the median
+    # WaniKani level of the kanji each JLPT level already holds, and give a kanji the
+    # level whose median its own WaniKani level is nearest. Ties fall to the harder one.
+    known = defaultdict(list)
+    for ch, e in jlpt_src.items():
+        if e.get("wk_level") and levels.get(ch, (0, ""))[1] in ("list", "old"):
+            known[levels[ch][0]].append(e["wk_level"])
+    mid = {lvl: statistics.median(v) for lvl, v in known.items()}
+    for ch, e in jlpt_src.items():
+        if e.get("wk_level") and ch not in levels:
+            near = min(mid, key=lambda l: (abs(mid[l] - e["wk_level"]), l))
+            levels[ch] = (near, "wanikani")
+    return levels
 
 
 def hira(s):
@@ -271,7 +341,7 @@ def word_difficulty(text, info):
     pedagogically useful axis anyway: an N4 card should not lean on an N1 kanji."""
     hard = 0
     for c in text:
-        if "\u4e00" <= c <= "\u9fff":
+        if is_kanji(c):
             e = info.get(c)
             hard = max(hard, LEVELS.index(e["level"]) if e else len(LEVELS))
     return hard
@@ -321,6 +391,11 @@ def index_vocab(jmdict, info, jlpt_vocab):
                 by_kanji[ch].append(entry)
     return by_kanji
 NUMERAL = set("一二三四五六七八九十百千万〇零")
+# One row of the card's back sets the reading in a column six kana wide and the word in
+# one five characters wide. Past either, the row wraps onto a second line, and the block
+# under the rule has room for two rows that do - 琉's every compound reads りゅうきゅう
+# something, and six of those run off the bottom of the card.
+READING_FITS, WORD_FITS, WRAPPED_ROWS = 6, 5, 2
 
 
 def pick_words(ch, candidates, on, kun, level, want=6):
@@ -354,13 +429,20 @@ def pick_words(ch, candidates, on, kun, level, want=6):
             return "numeral"            # counters and dates crowd out ordinary vocabulary
         return ""
 
-    chosen, taken, kinds, used = [], set(), Counter(), Counter()
+    def wraps(e):
+        return len(e["r"]) > READING_FITS or len(e["w"]) > WORD_FITS
+
+    chosen, taken, kinds, used, wrapped = [], set(), Counter(), Counter(), 0
     for relaxed in (False, True):       # drop the quotas rather than leave the card short
         for i, e in enumerate(ranked):
             if len(chosen) >= want:
                 break
             if i in taken:
                 continue
+            if wraps(e) and wrapped >= WRAPPED_ROWS:
+                continue                # the one quota that is never relaxed: it is the
+                                        # card's own height, and a short card beats a
+                                        # card that prints past its own edge
             s = shape(e)
             if not relaxed:
                 if s and used[s] >= caps[s]:
@@ -370,6 +452,7 @@ def pick_words(ch, candidates, on, kun, level, want=6):
             chosen.append(e)
             taken.add(i)
             kinds[e["t"]] += 1
+            wrapped += wraps(e)
             if s:
                 used[s] += 1
     return [{k: e[k] for k in ("w", "r", "m", "t")} for e in chosen[:want]]
@@ -437,19 +520,24 @@ def main():
     kangxi = kangxi_table(vg)
 
     chars = {c["literal"]: c for c in kd2["characters"]}
+    levels = kanji_levels(chars, jlpt_src, jlpt_vocab)
     info = {}
     for ch, c in chars.items():
         grade = c["misc"].get("grade")
-        if grade not in JOUYOU_GRADES or not vg.has(ch):
+        placed = levels.get(ch)
+        # A jouyou kanji is on the syllabus whether or not a list remembers it; anything
+        # else is here because a source put it on one. Both need a glyph to draw.
+        if not vg.has(ch) or not (placed or grade in JOUYOU_GRADES):
             continue
+        if not placed:
+            placed = (GRADE_LEVEL[grade], "grade")
         rm = c.get("readingMeaning") or {}
         groups = rm.get("groups") or [{}]
         reads = [r for g in groups for r in g.get("readings", [])]
         means = [m["value"] for g in groups for m in g.get("meanings", [])
                  if m.get("lang") == "en"]
-        lvl = jlpt_src.get(ch, {}).get("jlpt_new") or GRADE_LEVEL[grade]
         info[ch] = {
-            "grade": grade, "level": lvl,
+            "grade": grade, "level": placed[0], "src": placed[1],
             "freq": c["misc"].get("frequency"),
             "on":  [hira(r["value"]) for r in reads if r["type"] == "ja_on"],
             "kun": [r["value"] for r in reads if r["type"] == "ja_kun"],
@@ -458,6 +546,20 @@ def main():
         }
     for ch, e in info.items():
         e["gloss"] = pick_gloss(e["meanings"])
+
+    extra = sum(1 for e in info.values() if e["grade"] not in JOUYOU_GRADES)
+    print(f"  {len(info)} kanji ({extra} from outside the jouyou set), "
+          f"indexing {len(jm['words'])} dictionary entries", file=sys.stderr)
+    vocab = index_vocab(jm, info, jlpt_vocab)
+    chosen = {ch: pick_words(ch, vocab.get(ch, []), e["on"], e["kun"], e["level"])
+              for ch, e in info.items()}
+
+    # The front of a kanji card is its list of compounds, so a kanji JMdict can show
+    # nothing for has no card to print. A jouyou kanji is on the syllabus either way and
+    # keeps its place; one from outside the set has only its words to be here for.
+    for ch in [c for c, w in chosen.items()
+               if not w and info[c]["grade"] not in JOUYOU_GRADES]:
+        del info[ch], chosen[ch]
 
     # A stable card number per kanji: easiest level first, commonest kanji first.
     order = sorted(info, key=lambda c: (LEVELS.index(info[c]["level"]),
@@ -470,10 +572,6 @@ def main():
         for p in vg.get(ch)[3]:
             part_index[p].append(ch)
 
-    print(f"  {len(info)} jouyou kanji, indexing {len(jm['words'])} dictionary entries",
-          file=sys.stderr)
-    vocab = index_vocab(jm, info, jlpt_vocab)
-
     decks, tally, thin = defaultdict(list), Counter(), []
     for ch in order:
         e = info[ch]
@@ -483,7 +581,7 @@ def main():
         total = len(strokes)                         # match the strip the card actually draws
         if rad_n >= total:                           # 才 is filed under 手 but written as itself
             rad, rad_n = ch, total
-        words = pick_words(ch, vocab.get(ch, []), e["on"], e["kun"], e["level"])
+        words = chosen[ch]
         if len(words) < 6:
             thin.append(ch)
         for w in words:
@@ -542,6 +640,12 @@ def main():
     kana_n = sum(m["n"] for m, _ in kana_decks if m["id"] not in build_kana.MERGED_IDS)
     print(f"{sum(len(d) for d in decks.values())} kanji cards and {kana_n} kana cards "
           f"across {len(manifest)} decks")
+    placed = Counter(e["src"] for e in info.values())
+    print("levels placed by: " + ", ".join(
+        f"{placed[k]} {name}" for k, name in
+        (("list", "the N5-N1 kanji list"), ("old", "the pre-2010 levels"),
+         ("vocab", "the vocabulary lists"), ("wanikani", "WaniKani"),
+         ("grade", "school grade")) if placed[k]))
     print(f"readings classified: {tally['on']} on, {tally['kun']} kun, {tally['irr']} irregular")
     if thin:
         print(f"{len(thin)} kanji have fewer than 6 example words: {''.join(thin[:20])}"
