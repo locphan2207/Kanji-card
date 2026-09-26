@@ -16,7 +16,8 @@ reading each compound uses; 2,524 of them are here, shelved by JLPT level —
 every one of the 2,136 jōyō kanji, and 388 more that a JLPT source places at a level
 though the jōyō list does not cover them — 誰 and 箸 and 醤 and 嘘 among them. A level
 much over 200 cards is boxed as volumes of about 200 in card-number order, commonest
-first, plus a 全部 that deals the whole level: N3 and N2 are two volumes each, N1 seven.
+first: N3 and N2 are two volumes each, N1 seven. There is no kanji 全部 — a level too big
+to drill in one sitting is not offered as one.
 A **kana
 card** asks what one character sounds like; the whole syllabary is here —
 263 slots across both scripts, dealt as nine decks by class of form — not just the 46 you
@@ -43,9 +44,9 @@ frontend/
   index.html               markup, and a <template> per kind of card
   src/styles.css           everything visual
   src/app.js               deck loading, deck state, painting, the flights, and the switches
-  data/decks.js            all 27 decks and their card counts (loaded on every visit)
+  data/decks.js            all 24 decks and their card counts (loaded on every visit)
   data/decks/hira-sei.js   one file per deck, loaded only when picked
-  data/decks/n1-1.js       …  (a 全部 deck has no file: it deals its parts' files)
+  data/decks/n1-1.js       …  (a kana 全部 deck has no file: it deals its parts' files)
 tools/
   build_cards.py           the entry point: sources, the kanji decks, and the manifest
   build_kana.py            the kana decks
@@ -687,15 +688,13 @@ of mostly stroke geometry, 1.2MB gzipped; one deck is not:
 
 No deck is more than about 100 KB now. N1 was one 680 KB file before it was cut into
 volumes — over half of everything — and a learner who picked it waited on all 1,392
-cards to see the first; a volume is its most-used 200, and N1 全部 still deals the whole
-level from the same seven files.
+cards to see the first; a volume is its most-used 200.
 
 The kana half is 60 KB of the 1.2MB, so a learner who only wants ひらがな 清音 downloads
 11 KB. The 全部 decks add nothing to that total: a merged deck has no file of its own
 but names the decks it gathers, and the loader deals their files as one pile — so the
 whole of ひらがな costs its four parts and nothing more, and those parts are already in
-hand for anyone who drilled 清音 before picking 全部. The kanji 全部 decks work the same
-way, which is why splitting a level cost nothing to anyone who wants it whole. Decks load through a `<script>` tag
+hand for anyone who drilled 清音 before picking 全部. Decks load through a `<script>` tag
 rather than `fetch`, so the app still runs from `file://` with no server. Each file calls
 `KANJI_DECK(id, cards)` — the name the loader has had since there were only kanji decks,
 kept so that adding the kana half left the 3MB of generated kanji files byte-for-byte

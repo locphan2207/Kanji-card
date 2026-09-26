@@ -54,8 +54,9 @@ SOURCES = {
 JOUYOU_GRADES = (1, 2, 3, 4, 5, 6, 8)
 LEVELS = [5, 4, 3, 2, 1]                       # N5 first: the deck order learners meet
 # About how many cards one volume of a level holds. A level much larger than this is
-# boxed as volumes of even size plus a 全部 that gathers them, so N1's 1,392 is seven
-# sittings - and a download a seventh the size - rather than one pile nobody finishes.
+# boxed as volumes of even size, so N1's 1,392 is seven sittings - and a download a
+# seventh the size - rather than one pile nobody finishes. There is no kanji 全部: a
+# level too big to drill in one sitting is not offered as one.
 # Card numbers run commonest first, so volume 1 of a level is its most useful 200.
 VOLUME_SIZE = 200
 # The pre-2010 levels on the new scale, from the JLPT's own note on the 2010 rewrite:
@@ -518,8 +519,8 @@ def hira_to_kata(s):
 def level_decks(lvl, cards):
     """One level's decks, in chooser order, as (manifest entry, cards) pairs. A level of
     about VOLUME_SIZE or fewer is one deck; a larger one is volumes cut at even sizes in
-    card-number order, followed by a 全部 that deals them as one pile the way the kana
-    全部 decks do. Every deck carries its level as `set`, which the chooser shelves by."""
+    card-number order. Every deck carries its level as `set`, which the chooser shelves
+    by."""
     name = f"N{lvl}"
     base = {"group": "漢字", "kind": "kanji", "set": name}
     k = max(1, round(len(cards) / VOLUME_SIZE))
@@ -531,8 +532,6 @@ def level_decks(lvl, cards):
         vol = cards[len(cards) * i // k: len(cards) * (i + 1) // k]
         out.append(({"id": f"n{lvl}-{i + 1}", "label": name, "rom": f"part {i + 1}",
                      **base, "n": len(vol)}, vol))
-    out.append(({"id": f"n{lvl}", "label": "全部", "rom": "zenbu", **base,
-                 "n": len(cards), "parts": [m["id"] for m, _ in out]}, None))
     return out
 
 

@@ -634,9 +634,8 @@ function loadDeck(id) {
 }
 
 /* A kanji level too large for one sitting is boxed as volumes, and each of its decks
-   names the level it belongs to as `set`. The label on a box leaves that to the shelf it
-   stands on — N1 part 3, N1 全部 — so a name read anywhere else says it: 漢字 N1 part 3,
-   漢字 N1 全部, and plain 漢字 N5 or ひらがな 清音 where there is no set to add. */
+   names the level it belongs to as `set`. A name read off the shelf says both, 漢字 N1
+   part 3, and stays plain 漢字 N5 or ひらがな 清音 where there is nothing to add. */
 const deckName = d => [d.group, d.set !== d.label && d.set, d.label,
   d.set === d.label && d.rom].filter(Boolean).join(" ");
 
@@ -816,8 +815,8 @@ function renderChooser() {
   document.body.style.removeProperty("--ps");
   note.textContent = "";
   groupList.innerHTML = "";
-  // A shelf per script, and a shelf per kanji level: once N1 is seven volumes and a
-  // 全部, one 漢字 row would run the levels together into sixteen boxes. The shelf is
+  // A shelf per script, and a shelf per kanji level: once N1 is seven volumes, one
+  // 漢字 row would run the levels together into thirteen boxes. The shelf is
   // still printed in its series' ground; only its name is the level.
   const groups = [];
   DECKS.forEach(d => {
