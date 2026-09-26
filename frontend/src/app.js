@@ -633,6 +633,12 @@ function loadDeck(id) {
   });
 }
 
+/* A kanji level too large for one sitting is boxed as volumes, and each of its decks
+   names the level it belongs to as `set`. A name read off the shelf says both, 漢字 N1
+   part 3, and stays plain 漢字 N5 or ひらがな 清音 where there is nothing to add. */
+const deckName = d => [d.group, d.set !== d.label && d.set, d.label,
+  d.set === d.label && d.rom].filter(Boolean).join(" ");
+
 /* A merged deck has no file of its own. It names the decks it gathers and is dealt from
    their files, so the whole script can be drilled in one shuffle without a second copy
    of the same cards on disk — and without fetching 清音 again to meet it inside 全部. */
@@ -649,7 +655,7 @@ function deal(cards, meta) {
   setFlipped(false);
   paint(card, CARDS[current]);
   renderPiles();
-  $("relevel").textContent = `${meta.group} ${meta.label} · change deck`;
+  $("relevel").textContent = `${deckName(meta)} · change deck`;
   // On <body> rather than on .table: the card in flight is appended to the body, so a
   // scope any tighter than this would have it change stock halfway to the pile.
   document.body.dataset.cat = GROUP_CAT[meta.group] || "";
@@ -757,6 +763,7 @@ function deckBox(d, vol) {
   b.style.setProperty("--ps", `${(8.33 + vol * 2.65).toFixed(2)}cqw`);
   b.setAttribute("aria-label",
     `${d.group}${GROUP_EN[d.group] ? ` ${GROUP_EN[d.group]}` : ""} ` +
+    `${d.set && d.set !== d.label ? `${d.set} ` : ""}` +
     `${d.label}${d.rom ? ` (${d.rom})` : ""}, ${d.n} cards, ` +
     `numbers ${d.lo} to ${d.hi}`);
   // the two turned-away planes first, so the printed front paints over their edges
@@ -808,20 +815,24 @@ function renderChooser() {
   document.body.style.removeProperty("--ps");
   note.textContent = "";
   groupList.innerHTML = "";
+  // A shelf per script, and a shelf per kanji level: once N1 is seven volumes, one
+  // 漢字 row would run the levels together into thirteen boxes. The shelf is
+  // still printed in its series' ground; only its name is the level.
   const groups = [];
   DECKS.forEach(d => {
-    let g = groups.find(x => x.name === d.group);
-    if (!g) groups.push(g = { name: d.group, decks: [] });
+    const name = d.set || d.group;
+    let g = groups.find(x => x.name === name);
+    if (!g) groups.push(g = { name, series: d.group, decks: [] });
     g.decks.push(d);
   });
   groups.forEach(g => {
     const row = document.createElement("div");
     row.className = "group";
-    row.dataset.cat = GROUP_CAT[g.name] || "";
+    row.dataset.cat = GROUP_CAT[g.series] || "";
     const name = document.createElement("div");
     name.className = "group-name";
     name.innerHTML = `<span>${g.name}</span>` +
-      (GROUP_EN[g.name] ? `<span class="en">${GROUP_EN[g.name]}</span>` : "");
+      (GROUP_EN[g.series] ? `<span class="en">${GROUP_EN[g.series]}</span>` : "");
     const list = document.createElement("div");
     list.className = "levels";
     // The index within a group is the volume number, and the step of its pattern. It is
