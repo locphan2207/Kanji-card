@@ -1,5 +1,7 @@
 # Kana & Kanji Drill Card
 
+**Live at [kanjicard.app](https://kanjicard.app)**
+
 A single-screen Japanese study app built as a card table: a face-up draw pile, the card
 you are studying, and a face-down-ish discard. Draw a card, study it, turn it over to
 check the answer, draw again. Click the discard to take the last one back.
@@ -24,6 +26,12 @@ Pick a deck on load and that deck — and only that deck — is downloaded, then
 ```
 open frontend/index.html          # no build step, no server needed
 ```
+
+Every push to `main` publishes `frontend/` to GitHub Pages
+(`.github/workflows/pages.yml`), served at kanjicard.app. The domain's DNS is at
+Cloudflare: four `A` records on the apex pointing to GitHub's Pages addresses and a
+`www` CNAME to `locphan2207.github.io`, all set to DNS only, so GitHub can issue and
+renew the HTTPS certificate itself.
 
 ## Layout
 
