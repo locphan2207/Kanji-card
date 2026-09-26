@@ -42,6 +42,9 @@ renew the HTTPS certificate itself.
 ```
 frontend/
   index.html               markup, and a <template> per kind of card
+  manifest.webmanifest     name and icons for a phone's home screen
+  robots.txt, sitemap.xml  for search engines
+  img/                     the icons, and og-image.png, the picture a shared link shows
   src/styles.css           everything visual
   src/app.js               deck loading, deck state, painting, the flights, and the switches
   data/decks.js            all 24 decks and their card counts (loaded on every visit)
