@@ -12,9 +12,12 @@ kana card is the same stock asking a much smaller question, so its front is the 
 and the stroke order and nothing else.
 
 Two kinds of card, because they ask different questions. A **kanji card** asks which
-reading each compound uses; 2,524 of them are here, dealt as five decks by JLPT level —
+reading each compound uses; 2,524 of them are here, shelved by JLPT level —
 every one of the 2,136 jōyō kanji, and 388 more that a JLPT source places at a level
-though the jōyō list does not cover them — 誰 and 箸 and 醤 and 嘘 among them. A **kana
+though the jōyō list does not cover them — 誰 and 箸 and 醤 and 嘘 among them. A level
+much over 200 cards is boxed as volumes of about 200 in card-number order, commonest
+first, plus a 全部 that deals the whole level: N3 and N2 are two volumes each, N1 seven.
+A **kana
 card** asks what one character sounds like; the whole syllabary is here —
 263 slots across both scripts, dealt as nine decks by class of form — not just the 46 you
 start with but the voiced kana, the 拗音 combinations, the sokuon and the long mark, the
@@ -40,9 +43,9 @@ frontend/
   index.html               markup, and a <template> per kind of card
   src/styles.css           everything visual
   src/app.js               deck loading, deck state, painting, the flights, and the switches
-  data/decks.js            the sixteen decks and their card counts (loaded on every visit)
+  data/decks.js            all 27 decks and their card counts (loaded on every visit)
   data/decks/hira-sei.js   one file per deck, loaded only when picked
-  data/decks/n1.js         …
+  data/decks/n1-1.js       …  (a 全部 deck has no file: it deals its parts' files)
 tools/
   build_cards.py           the entry point: sources, the kanji decks, and the manifest
   build_kana.py            the kana decks
@@ -668,25 +671,31 @@ makes it a build artifact, not records. Keeping it in files means content edits 
 reviewable diffs, the page still opens from `file://`, hosting is a static bucket, and
 there is nothing to back up that `build_cards.py` could not regenerate.
 
-Splitting by deck is what keeps that honest at 2,409 cards. The whole set is about 3MB
-of mostly stroke geometry; one deck is not:
+Splitting by deck is what keeps that honest at 2,797 cards. The whole set is about 3.7MB
+of mostly stroke geometry, 1.2MB gzipped; one deck is not:
 
-| deck                  | cards | gzipped |
-|-----------------------|------:|--------:|
-| kana, each of nine    | 12–46 | 3–11 KB |
-| ひらがな 全部         |   119 |   28 KB |
-| カタカナ 全部         |   154 |   34 KB |
-| N5                    |    79 |   26 KB |
-| N4                    |   168 |   68 KB |
-| N3                    |   377 |  165 KB |
-| N2                    |   368 |  163 KB |
-| N1                    | 1,144 |  555 KB |
+| deck                     |   cards | gzipped |
+|--------------------------|--------:|--------:|
+| kana, each of nine       |   12–46 |  3–11 KB |
+| ひらがな 全部            |     119 |   27 KB |
+| カタカナ 全部            |     154 |   33 KB |
+| N5                       |      89 |   31 KB |
+| N4                       |     178 |   72 KB |
+| N3, each of two volumes  | 214–215 | 92–99 KB |
+| N2, each of two volumes  |     218 | 96–100 KB |
+| N1, each of seven volumes| 198–199 | 95–97 KB |
 
-The kana half is 254 KB of the 3MB, so a learner who only wants ひらがな 清音 downloads
-11 KB. The two 全部 decks add nothing to that total: a merged deck has no file of its own
+No deck is more than about 100 KB now. N1 was one 680 KB file before it was cut into
+volumes — over half of everything — and a learner who picked it waited on all 1,392
+cards to see the first; a volume is its most-used 200, and N1 全部 still deals the whole
+level from the same seven files.
+
+The kana half is 60 KB of the 1.2MB, so a learner who only wants ひらがな 清音 downloads
+11 KB. The 全部 decks add nothing to that total: a merged deck has no file of its own
 but names the decks it gathers, and the loader deals their files as one pile — so the
 whole of ひらがな costs its four parts and nothing more, and those parts are already in
-hand for anyone who drilled 清音 before picking 全部. Decks load through a `<script>` tag
+hand for anyone who drilled 清音 before picking 全部. The kanji 全部 decks work the same
+way, which is why splitting a level cost nothing to anyone who wants it whole. Decks load through a `<script>` tag
 rather than `fetch`, so the app still runs from `file://` with no server. Each file calls
 `KANJI_DECK(id, cards)` — the name the loader has had since there were only kanji decks,
 kept so that adding the kana half left the 3MB of generated kanji files byte-for-byte
