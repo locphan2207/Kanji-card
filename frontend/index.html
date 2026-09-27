@@ -165,5 +165,10 @@
 </div>
 <script src="data/decks.js"></script>
 <script src="src/app.js"></script>
+<!-- Cloudflare Web Analytics. The DNS records are DNS only, so traffic never passes
+     through Cloudflare for it to insert this itself; it has to be on the page. It
+     counts visits without cookies, and a module script waits for the page anyway. -->
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "331660d8585a4bf6852dfdf2217f428c"}'></script>
 </body>
 </html>
